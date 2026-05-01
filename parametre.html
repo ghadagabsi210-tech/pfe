@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Paramètres ESIP - Administration</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="darkmode.css">
+    <script src="darkmode.js"></script>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; font-family:Poppins; }
+        body { background:#f4f7fa; min-height:100vh; padding-top:100px; transition:0.4s; color: #0f172a; }
+        .header { position:fixed; top:0; left:0; width:100%; height:80px; background:rgba(255,255,255,0.9); backdrop-filter:blur(10px); display:flex; justify-content:space-between; align-items:center; padding:0 60px; box-shadow:0 1px 0 rgba(0,0,0,0.05); z-index:1000; }
+        .logo { font-size:26px; font-weight:800; color:#0f172a; cursor:pointer; }
+        .logo span { color:#2563eb; }
+        .container { width:100%; max-width:800px; margin:0 auto; padding:20px; display:grid; grid-template-columns: 1fr 1fr; gap:25px; }
+        .card { background:white; padding:35px; border-radius:30px; box-shadow:0 10px 40px rgba(0,0,0,0.02); animation:fadeUp 0.8s ease; border: 1px solid rgba(0,0,0,0.03); transition:0.3s; }
+        .card:hover { transform:translateY(-8px); box-shadow: 0 20px 60px rgba(37,99,235,0.05); }
+        .full { grid-column: span 2; }
+        @keyframes fadeUp { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
+        h2 { margin-bottom:25px; color:#0f172a; font-size:22px; display:flex; align-items:center; gap:12px; font-weight: 800; }
+        label { display:block; margin-top:20px; font-size:12px; font-weight:800; color:#64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+        input { width:100%; padding:14px; margin-top:8px; border-radius:14px; border:1px solid #e2e8f0; outline:none; transition:0.3s; font-family:Poppins; background: #fcfcfc; }
+        input:focus { border-color:#2563eb; background: white; box-shadow:0 0 15px rgba(37,99,235,0.05); }
+        button { width:100%; padding:15px; margin-top:25px; border:none; border-radius:15px; background:#2563eb; color:white; font-weight:700; cursor:pointer; transition:0.3s; box-shadow: 0 4px 15px rgba(37,99,235,0.2); }
+        button:hover { background:#1d4ed8; transform:translateY(-3px); }
+        .btn-logout { background:#ef4444; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2); }
+        .toggle { display:flex; justify-content:space-between; align-items:center; margin-top:20px; padding: 15px; background: #f8fafc; border-radius: 12px; }
+        .switch { width:54px; height:28px; background:#cbd5e1; border-radius:20px; position:relative; cursor:pointer; transition:0.3s; }
+        .switch::after { content:""; width:22px; height:22px; background:white; position:absolute; top:3px; left:3px; border-radius:50%; transition:0.3s; }
+        .switch.active { background:#2563eb; }
+        .switch.active::after { left:29px; }
+
+        .toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(100px); background:#0f172a; color:white; padding:12px 25px; border-radius:50px; opacity:0; transition:0.4s; font-weight:600; box-shadow:0 10px 20px rgba(0,0,0,0.2); z-index:2000; }
+        .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="logo" onclick="location.href='admin.html'">ESIP<span>.Admin</span></div>
+        <button onclick="location.href='admin.html'" style="width:auto; padding:10px 25px; margin:0; background:#0f172a;">Tableau de Bord</button>
+    </header>
+
+    <div class="container">
+        <!-- PROFILE -->
+        <div class="card full">
+            <h2><i class="fa-solid fa-user-gear" style="color:#2563eb;"></i> Administration Globale</h2>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+                <div class="form-group">
+                    <label>Nom Administratif</label>
+                    <input id="nom" placeholder="Votre nom">
+                </div>
+                <div class="form-group">
+                    <label>Prénom</label>
+                    <input id="prenom" placeholder="Votre prénom">
+                </div>
+            </div>
+            <label>Email de Connexion</label>
+            <input id="email" placeholder="votre@email.com">
+            <button onclick="saveProfile()"><i class="fa-solid fa-check-circle" style="margin-right:8px"></i> Mettre à jour le profil</button>
+        </div>
+
+        <!-- SECURITY -->
+        <div class="card">
+            <h2><i class="fa-solid fa-shield-halved" style="color:#ef4444;"></i> Sécurité</h2>
+            <p style="font-size:13px; color:#64748b; margin-bottom:10px;">Modifiez vos identifiants d'accès sécurisés.</p>
+            <label>Nouveau mot de passe</label>
+            <input type="password" id="pass" placeholder="••••••••">
+            <button onclick="changePass()" style="background:#0f172a;">Appliquer</button>
+        </div>
+
+        <!-- PREFERENCES -->
+        <div class="card">
+            <h2><i class="fa-solid fa-sliders" style="color:#6366f1;"></i> Système</h2>
+            <div class="toggle">
+                <span style="font-weight:700; font-size:14px;">Interface Moderne</span>
+                <div id="switch" class="switch active"></div>
+            </div>
+            <button class="btn-logout" onclick="logout()"><i class="fa-solid fa-power-off" style="margin-right:8px"></i> Déconnexion</button>
+        </div>
+    </div>
+
+    <div id="toast" class="toast">Action effectuée avec succès !</div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, updateEmail, updatePassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD56AbWLar8R7qe4x__3a8dfZop6A1jew0",
+            authDomain: "pfe2026-2cd50.firebaseapp.com",
+            projectId: "pfe2026-2cd50"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let currentUser = null;
+
+        // AUTH CHECK - Support both Firebase Auth users AND hardcoded admin
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    const data = userDoc.data();
+                    document.getElementById("nom").value = data.nom || "";
+                    document.getElementById("prenom").value = data.prenom || "";
+                    document.getElementById("email").value = user.email || "";
+                }
+            } else {
+                // Hardcoded admin fallback - don't redirect
+                document.getElementById("nom").value = "Admin";
+                document.getElementById("prenom").value = "ESIP";
+                document.getElementById("email").value = "admin@esip.com";
+            }
+        });
+
+        // PREFERENCES
+        if (localStorage.getItem("dark") === "true") {
+            document.body.classList.add("dark");
+            document.getElementById("switch").classList.add("active");
+        }
+
+        window.toggleDark = () => {
+            document.body.classList.toggle("dark");
+            document.getElementById("switch").classList.toggle("active");
+            localStorage.setItem("dark", document.body.classList.contains("dark"));
+        };
+
+        window.saveProfile = async () => {
+            if (!currentUser) return;
+            const newNom = document.getElementById("nom").value.trim();
+            const newPrenom = document.getElementById("prenom").value.trim();
+            const newEmail = document.getElementById("email").value.trim();
+
+            try {
+                // Update Firestore
+                await updateDoc(doc(db, "users", currentUser.uid), {
+                    nom: newNom,
+                    prenom: newPrenom,
+                    email: newEmail
+                });
+
+                // Update Auth Email if changed
+                if (newEmail !== currentUser.email) {
+                    await updateEmail(currentUser, newEmail);
+                }
+
+                showToast("Profil mis à jour !");
+            } catch (error) {
+                alert("Erreur: " + error.message);
+            }
+        };
+
+        window.changePass = async () => {
+            if (!currentUser) return;
+            const newPass = document.getElementById("pass").value.trim();
+            if (newPass.length < 6) {
+                alert("Le mot de passe doit contenir au moins 6 caractères");
+                return;
+            }
+
+            try {
+                await updatePassword(currentUser, newPass);
+                // Also update in firestore for convenience if role allows
+                await updateDoc(doc(db, "users", currentUser.uid), {
+                    password: newPass
+                });
+                document.getElementById("pass").value = "";
+                showToast("Mot de passe changé !");
+            } catch (error) {
+                alert("Veuillez vous reconnecter pour changer le mot de passe (sécurité).");
+            }
+        };
+
+        window.logout = () => {
+            signOut(auth).then(() => {
+                location.href = "login.html";
+            });
+        };
+
+        function showToast(msg) {
+            const t = document.getElementById("toast");
+            t.innerText = msg;
+            t.classList.add("show");
+            setTimeout(() => t.classList.remove("show"), 3000);
+        }
+    </script>
+</body>
+</html>

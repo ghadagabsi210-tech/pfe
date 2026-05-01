@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>ESIP - Import Complet Étudiants</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+        body { background: #0f172a; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; }
+        .card { background: white; padding: 40px; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); width: 100%; max-width: 900px; }
+        h1 { color: #0f172a; font-size: 28px; margin-bottom: 8px; }
+        .sub { color: #64748b; margin-bottom: 30px; }
+        .progress-bar { background: #e2e8f0; border-radius: 99px; height: 12px; overflow: hidden; margin-bottom: 8px; }
+        .progress-fill { background: linear-gradient(90deg, #2563eb, #059669); height: 100%; width: 0%; transition: width 0.4s; border-radius: 99px; }
+        #pct { font-weight: 700; font-size: 20px; color: #2563eb; margin-bottom: 20px; }
+        #log { background: #0f172a; color: #86efac; padding: 16px; border-radius: 12px; font-family: monospace; font-size: 12px; height: 200px; overflow-y: auto; margin-bottom: 20px; }
+        #btn-start { background: linear-gradient(135deg, #2563eb, #0f172a); color: white; border: none; padding: 16px 40px; border-radius: 14px; font-size: 18px; font-weight: 700; cursor: pointer; width: 100%; transition: 0.3s; }
+        #btn-start:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(37,99,235,0.4); }
+        #btn-start:disabled { background: #cbd5e1; cursor: not-allowed; transform: none; }
+        table { width: 100%; border-collapse: collapse; margin-top: 30px; display: none; }
+        th { background: #0f172a; color: white; padding: 12px; text-align: left; font-size: 13px; }
+        td { padding: 10px 12px; font-size: 13px; border-bottom: 1px solid #f1f5f9; }
+        tr:nth-child(even) td { background: #f8fafc; }
+        .badge { padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; }
+        .ok { background: #dcfce7; color: #166534; }
+        .err { background: #fee2e2; color: #991b1b; }
+        #download-btn { display: none; background: #059669; color: white; border: none; padding: 14px 30px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; width: 100%; margin-top: 16px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h1>🎓 Import Complet des Étudiants ESIP</h1>
+    <p class="sub">Cet outil supprime les anciens enregistrements, crée les comptes Auth et enregistre les 40 étudiants.</p>
+
+    <div class="progress-bar"><div class="progress-fill" id="fill"></div></div>
+    <div id="pct">En attente...</div>
+    <div id="log">Cliquez sur le bouton pour commencer.</div>
+
+    <button id="btn-start" onclick="start()">🚀 Lancer l'import complet</button>
+    <button id="download-btn" onclick="downloadCSV()">💾 Télécharger la liste des mots de passe</button>
+
+    <table id="result-table">
+        <thead>
+            <tr><th>Nom</th><th>Prénom</th><th>Email</th><th>Classe</th><th>Mot de passe</th><th>Statut</th></tr>
+        </thead>
+        <tbody id="result-body"></tbody>
+    </table>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+<script>
+const firebaseConfig = {
+    apiKey: "AIzaSyD56AbWLar8R7qe4x__3a8dfZop6A1jew0",
+    authDomain: "pfe2026-2cd50.firebaseapp.com",
+    projectId: "pfe2026-2cd50",
+    storageBucket: "pfe2026-2cd50.appspot.com",
+    messagingSenderId: "263356463306",
+    appId: "1:263356463306:web:bf3b02eb9ec97dce069c33"
+};
+
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+const logEl = document.getElementById('log');
+const fillEl = document.getElementById('fill');
+const pctEl = document.getElementById('pct');
+
+function log(msg) {
+    const d = document.createElement('div');
+    d.innerText = msg;
+    logEl.appendChild(d);
+    logEl.scrollTop = logEl.scrollHeight;
+}
+
+function setProgress(val, total) {
+    const p = Math.round((val / total) * 100);
+    fillEl.style.width = p + '%';
+    pctEl.innerText = `${val} / ${total} (${p}%)`;
+}
+
+// Générateur de mot de passe aléatoire (8 chiffres)
+function genPwd() {
+    return Math.floor(10000000 + Math.random() * 90000000).toString();
+}
+
+// Liste des 40 étudiants — mots de passe générés automatiquement
+const students = [
+    {nom:"Abidi",prenom:"Ahmed",email:"ahmed.abidi@gmail.com",cin:"11223344",tel:"22111111",classe:"INFO1"},
+    {nom:"Belhaj",prenom:"Sami",email:"sami.belhaj@gmail.com",cin:"22334455",tel:"22111112",classe:"INFO2"},
+    {nom:"Chabane",prenom:"Ines",email:"ines.chabane@gmail.com",cin:"33445566",tel:"22111113",classe:"INFO3"},
+    {nom:"Dridi",prenom:"Omar",email:"omar.dridi@gmail.com",cin:"44556677",tel:"22111114",classe:"ENG1"},
+    {nom:"Elloumi",prenom:"Sarra",email:"sarra.elloumi@gmail.com",cin:"55667788",tel:"22111115",classe:"ENG2"},
+    {nom:"Fakhfakh",prenom:"Mehdi",email:"mehdi.fakhfakh@gmail.com",cin:"66778899",tel:"22111116",classe:"GESTION1"},
+    {nom:"Ghrab",prenom:"Lina",email:"lina.ghrab@gmail.com",cin:"77889900",tel:"22111117",classe:"INFO1"},
+    {nom:"Hammami",prenom:"Youssef",email:"youssef.hammami@gmail.com",cin:"88990011",tel:"22111118",classe:"INFO2"},
+    {nom:"Idoudi",prenom:"Amal",email:"amal.idoudi@gmail.com",cin:"99001122",tel:"22111119",classe:"INFO3"},
+    {nom:"Jridi",prenom:"Bassem",email:"bassem.jridi@gmail.com",cin:"10112233",tel:"22111120",classe:"ENG1"},
+    {nom:"Kammoun",prenom:"Mouna",email:"mouna.kammoun@gmail.com",cin:"11223344",tel:"22111121",classe:"ENG2"},
+    {nom:"Ladjimi",prenom:"Karim",email:"karim.ladjimi@gmail.com",cin:"12334455",tel:"22111122",classe:"GESTION1"},
+    {nom:"Masmoudi",prenom:"Rania",email:"rania.masmoudi@gmail.com",cin:"13445566",tel:"22111123",classe:"INFO1"},
+    {nom:"Neffati",prenom:"Wajdi",email:"wajdi.neffati@gmail.com",cin:"14556677",tel:"22111124",classe:"INFO2"},
+    {nom:"Ouali",prenom:"Nour",email:"nour.ouali@gmail.com",cin:"15667788",tel:"22111125",classe:"INFO3"},
+    {nom:"Rekik",prenom:"Faten",email:"faten.rekik@gmail.com",cin:"16778899",tel:"22111126",classe:"ENG1"},
+    {nom:"Saidi",prenom:"Hamza",email:"hamza.saidi@gmail.com",cin:"17889900",tel:"22111127",classe:"ENG2"},
+    {nom:"Trabelsi",prenom:"Sonia",email:"sonia.trabelsi@gmail.com",cin:"18990011",tel:"22111128",classe:"GESTION1"},
+    {nom:"Zouari",prenom:"Farah",email:"farah.zouari@gmail.com",cin:"19001122",tel:"22111129",classe:"INFO1"},
+    {nom:"Baccar",prenom:"Anis",email:"anis.baccar@gmail.com",cin:"20112233",tel:"22111130",classe:"INFO2"},
+    {nom:"Chaibi",prenom:"Hiba",email:"hiba.chaibi@gmail.com",cin:"21223344",tel:"22111131",classe:"INFO3"},
+    {nom:"Dali",prenom:"Zied",email:"zied.dali@gmail.com",cin:"22334455",tel:"22111132",classe:"ENG1"},
+    {nom:"Essoussi",prenom:"Meriem",email:"meriem.essoussi@gmail.com",cin:"23445566",tel:"22111133",classe:"ENG2"},
+    {nom:"Fekih",prenom:"Skander",email:"skander.fekih@gmail.com",cin:"24556677",tel:"22111134",classe:"GESTION1"},
+    {nom:"Gammoudi",prenom:"Olfa",email:"olfa.gammoudi@gmail.com",cin:"25667788",tel:"22111135",classe:"INFO1"},
+    {nom:"Hanchi",prenom:"Raouf",email:"raouf.hanchi@gmail.com",cin:"26778899",tel:"22111136",classe:"INFO2"},
+    {nom:"Issaoui",prenom:"Khaled",email:"khaled.issaoui@gmail.com",cin:"27889900",tel:"22111137",classe:"INFO3"},
+    {nom:"Jamoussi",prenom:"Emna",email:"emna.jamoussi@gmail.com",cin:"28990011",tel:"22111138",classe:"ENG1"},
+    {nom:"Kchaou",prenom:"Rami",email:"rami.kchaou@gmail.com",cin:"29001122",tel:"22111139",classe:"ENG2"},
+    {nom:"Loukil",prenom:"Nada",email:"nada.loukil@gmail.com",cin:"30112233",tel:"22111140",classe:"GESTION1"},
+    {nom:"Mbarek",prenom:"Walid",email:"walid.mbarek@gmail.com",cin:"31223344",tel:"22111141",classe:"INFO1"},
+    {nom:"Nouira",prenom:"Alya",email:"alya.nouira@gmail.com",cin:"32334455",tel:"22111142",classe:"INFO2"},
+    {nom:"Osman",prenom:"Tarek",email:"tarek.osman@gmail.com",cin:"33445566",tel:"22111143",classe:"INFO3"},
+    {nom:"Rezgui",prenom:"Yasmine",email:"yasmine.rezgui@gmail.com",cin:"34556677",tel:"22111144",classe:"ENG1"},
+    {nom:"Souissi",prenom:"Ilyes",email:"ilyes.souissi@gmail.com",cin:"35667788",tel:"22111145",classe:"ENG2"},
+    {nom:"Toumi",prenom:"Leila",email:"leila.toumi@gmail.com",cin:"36778899",tel:"22111146",classe:"GESTION1"},
+    {nom:"Yahyaoui",prenom:"Adel",email:"adel.yahyaoui@gmail.com",cin:"37889900",tel:"22111147",classe:"INFO1"},
+    {nom:"Zghal",prenom:"Rim",email:"rim.zghal@gmail.com",cin:"38990011",tel:"22111148",classe:"INFO2"},
+    {nom:"Ayadi",prenom:"Sami",email:"sami.ayadi@gmail.com",cin:"39001122",tel:"22111149",classe:"INFO3"},
+    {nom:"Ben Amor",prenom:"Nour",email:"nour.benamor@gmail.com",cin:"40112233",tel:"22111150",classe:"ENG1"},
+];
+
+const results = [];
+
+async function start() {
+    document.getElementById('btn-start').disabled = true;
+    logEl.innerHTML = '';
+
+    // STEP 1: Supprimer les anciens enregistrements
+    log("🧹 Étape 1: Suppression des anciens enregistrements...");
+    const snap = await db.collection("etd").get();
+    let deleted = 0;
+    for (const d of snap.docs) {
+        if (d.id.startsWith("student_auto_")) {
+            await db.collection("etd").doc(d.id).delete();
+            deleted++;
+        }
+    }
+    log(`✅ ${deleted} anciens enregistrements supprimés.`);
+
+    // STEP 2: Créer les comptes Auth + Firestore
+    log("🚀 Étape 2: Création des 40 comptes étudiants...");
+    let i = 0;
+    const tbody = document.getElementById('result-body');
+
+    for (const s of students) {
+        setProgress(i, students.length);
+        // Generate auto password
+        s.pwd = genPwd();
+        try {
+            // Create Auth account
+            const cred = await auth.createUserWithEmailAndPassword(s.email, s.pwd);
+            const uid = cred.user.uid;
+
+            // Save to Firestore
+            await db.collection("etd").doc(uid).set({
+                nom: s.nom,
+                prenom: s.prenom,
+                email: s.email,
+                cin: s.cin,
+                tel: s.tel,
+                classe: s.classe,
+                role: "etudiant",
+                password: s.pwd,
+                photo: ""
+            });
+
+            // Sign out before creating next account
+            await auth.signOut();
+
+            results.push({ ...s, status: 'ok' });
+            log(`✅ [${i+1}/40] ${s.nom} ${s.prenom} - CRÉÉ`);
+
+            tbody.innerHTML += `
+                <tr>
+                    <td>${s.nom}</td><td>${s.prenom}</td><td>${s.email}</td>
+                    <td>${s.classe}</td><td><code>${s.pwd}</code></td>
+                    <td><span class="badge ok">✅ OK</span></td>
+                </tr>`;
+        } catch(err) {
+            if (err.code === 'auth/email-already-in-use') {
+                // Update Firestore only
+                const q = await db.collection("etd").where("email", "==", s.email).get();
+                if (q.empty) {
+                    await db.collection("etd").add({ nom: s.nom, prenom: s.prenom, email: s.email, cin: s.cin, tel: s.tel, classe: s.classe, role: "etudiant", password: s.pwd, photo: "" });
+                }
+                results.push({ ...s, status: 'exists' });
+                log(`ℹ️ [${i+1}/40] ${s.email} existe déjà.`);
+                tbody.innerHTML += `<tr><td>${s.nom}</td><td>${s.prenom}</td><td>${s.email}</td><td>${s.classe}</td><td><code>${s.pwd}</code></td><td><span class="badge ok">ℹ️ Existant</span></td></tr>`;
+            } else {
+                results.push({ ...s, status: 'error', err: err.message });
+                log(`❌ [${i+1}/40] Erreur ${s.email}: ${err.message}`);
+                tbody.innerHTML += `<tr><td>${s.nom}</td><td>${s.prenom}</td><td>${s.email}</td><td>${s.classe}</td><td><code>${s.pwd}</code></td><td><span class="badge err">❌ Erreur</span></td></tr>`;
+            }
+        }
+        i++;
+    }
+
+    setProgress(students.length, students.length);
+    pctEl.innerText = "✅ TERMINÉ !";
+    pctEl.style.color = "#059669";
+    document.body.style.background = "#0f2e1a";
+    log("🎊 Importation complète ! Vous pouvez télécharger la liste des mots de passe.");
+    document.getElementById('result-table').style.display = 'table';
+    document.getElementById('download-btn').style.display = 'block';
+}
+
+function downloadCSV() {
+    let csv = "Nom,Prenom,Email,Classe,Mot de passe\n";
+    results.forEach(r => {
+        csv += `${r.nom},${r.prenom},${r.email},${r.classe},${r.pwd}\n`;
+    });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'esip_etudiants_passwords.csv';
+    a.click();
+}
+</script>
+
+</body>
+</html>

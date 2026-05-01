@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Face Recognition ESIP</title>
+</head>
+<body>
+
+<h2>Face Recognition ESIP</h2>
+
+<video id="video" width="720" height="560" autoplay muted></video>
+
+<!-- Face API -->
+<script defer src="https://unpkg.com/face-api.js@0.22.2/dist/face-api.min.js"></script>
+
+<!-- Firebase (compat version) -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+<!-- Firebase Config -->
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyD56AbWLar8R7qe4x__3a8dfZop6A1jew0",
+  authDomain: "pfe2026-2cd50.firebaseapp.com",
+  projectId: "pfe2026-2cd50",
+  storageBucket: "pfe2026-2cd50.firebasestorage.app",
+  messagingSenderId: "263356463306",
+  appId: "1:263356463306:web:3d8cbbc3e760cbe0069c33",
+  measurementId: "G-9CMZ7P8C1D"
+};
+
+// IMPORTANT
+firebase.initializeApp(firebaseConfig);
+</script>
+
+<!-- Face Recognition Script -->
+<script>
+window.onload = async () => {
+
+const video = document.getElementById("video")
+
+// تحميل models
+await Promise.all([
+  faceapi.nets.tinyFaceDetector.loadFromUri('models'),
+  faceapi.nets.faceRecognitionNet.loadFromUri('models'),
+  faceapi.nets.faceLandmark68Net.loadFromUri('models')
+])
+
+startVideo()
+
+function startVideo() {
+  navigator.mediaDevices.getUserMedia({ video: true })
+    .then(stream => video.srcObject = stream)
+    .catch(err => console.log("Camera error:", err))
+}
+
+// تحميل data
+async function loadData() {
+  const labels = ['person1', 'person2', 'person3']
+
+  return Promise.all(
+    labels.map(async label => {
+      try {
+        const img = await faceapi.fetchImage(`data/${label}/1.jpg`)
+        const detection = await faceapi.detectSingleFace(img)
+          .withFaceLandmarks()
+          .withFaceDescriptor()
+
+        if (!detection) return null
+
+        return new faceapi.LabeledFaceDescriptors(label, [detection.descriptor])
+      } catch {
+        return null
+      }
+    })
+  )
+}
+
+// تشغيل
+video.addEventListener("play", async () => {
+
+  const labeled = await loadData()
+  const valid = labeled.filter(e => e)
+
+  if (valid.length === 0) {
+    console.log("No faces loaded")
+    return
+  }
+
+  const matcher = new faceapi.FaceMatcher(valid)
+
+  setInterval(async () => {
+
+    const detections = await faceapi.detectAllFaces(
+      video,
+      new faceapi.TinyFaceDetectorOptions()
+    ).withFaceLandmarks().withFaceDescriptors()
+
+    detections.forEach(d => {
+      const result = matcher.findBestMatch(d.descriptor)
+      console.log(result.toString())
+    })
+
+  }, 2000)
+
+})
+
+}
+</script>
+
+</body>
+</html>

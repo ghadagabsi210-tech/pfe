@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+
+<meta charset="UTF-8">
+<title>Gestion Étudiants PFE PRO MAX</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="darkmode.css">
+<script src="darkmode.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
+<style>
+    :root {
+        --primary: #2563eb;
+        --secondary: #0f172a;
+        --light: #f1f5f9;
+        --accent: #334155;
+    }
+
+    *{box-sizing:border-box;font-family:Poppins;}
+
+    body{
+    background: var(--light);
+    padding:40px;
+    animation:fadeIn 0.8s;
+    }
+
+    h1{
+    color: var(--secondary);
+    margin-bottom:20px;
+    }
+
+    /* TOPBAR */
+    .topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:20px;
+    }
+
+    /* BUTTONS */
+    button{
+    padding:10px 18px;
+    border:none;
+    border-radius:12px;
+    cursor:pointer;
+    font-weight:600;
+    transition:0.3s;
+    box-shadow:0 4px 10px rgba(0,0,0,0.05);
+    }
+
+    button:hover{
+    transform:translateY(-3px);
+    }
+
+    .add{background: var(--primary); color:white;}
+    .edit{background: var(--accent); color:white; padding:6px 10px;}
+    .delete{background:#ef4444; color:white; padding:6px 10px;}
+    .import{background: var(--accent); color:white;}
+    .export{background:#e2e8f0; color: var(--secondary);}
+    .retour{background: var(--secondary); color:white;}
+
+    /* SEARCH BAR */
+    .search-container{
+    display:flex;
+    justify-content:center;
+    margin-bottom:20px;
+    }
+
+    .search{
+    width:400px;
+    padding:12px;
+    border-radius:30px;
+    border:1px solid #e2e8f0;
+    outline:none;
+    box-shadow:0 5px 15px rgba(0,0,0,0.03);
+    transition:0.3s;
+    background: white;
+    }
+
+    .search:focus{
+    transform:scale(1.05);
+    border-color: var(--primary);
+    }
+
+    /* TABLE */
+    table{
+    width:100%;
+    background:white;
+    border-radius:16px;
+    border-collapse:collapse;
+    overflow:hidden;
+    box-shadow:0 10px 30px rgba(0,0,0,0.03);
+    border: 1px solid #e2e8f0;
+    }
+
+    th{
+    background: var(--secondary);
+    color:white;
+    padding:16px;
+    font-size:13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    }
+
+    td{
+    padding:15px;
+    text-align:center;
+    border-bottom:1px solid #f1f5f9;
+    font-size:14px;
+    color: #475569;
+    transition: 0.3s;
+    }
+ 
+    tr:hover td{
+    background:#f8fafc;
+    color: var(--primary);
+    }
+
+    /* PHOTO */
+    .photo{
+    width:45px;
+    height:45px;
+    border-radius:50%;
+    object-fit:cover;
+    border:2px solid #e2e8f0;
+    transition:0.3s;
+    }
+
+    .photo:hover{
+    transform:scale(1.3);
+    border-color: var(--primary);
+    }
+
+    /* MODAL */
+    .modal{
+    position:fixed;
+    top:0;left:0;
+    width:100%;height:100%;
+    background:rgba(0,0,0,0.5);
+    display:none;
+    justify-content:center;
+    align-items:center;
+    z-index:1000;
+    backdrop-filter: blur(4px);
+    }
+
+    .modal-content{
+    background:white;
+    padding:25px;
+    border-radius:16px;
+    width:350px;
+    animation:pop 0.3s;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+    }
+
+    input,select{
+    width:100%;
+    padding:10px;
+    margin-bottom:10px;
+    border-radius:8px;
+    border:1px solid #e2e8f0;
+    }
+
+    input:focus, select:focus {
+        border-color: var(--primary);
+        outline: none;
+    }
+
+    /* ANIM */
+    @keyframes fadeIn{
+    from{opacity:0;}
+    to{opacity:1;}
+    }
+
+    @keyframes pop{
+    from{transform:scale(0.7);}
+    to{transform:scale(1);}
+    }
+
+</style>
+
+</head>
+
+<body>
+
+<h1><i class="fa-solid fa-graduation-cap" style="font-size:28px;margin-right:8px"></i> Gestion Étudiants - <span onclick="location.href='admin.html'" style="cursor:pointer; color:#8c7851;">ESIP</span></h1>
+
+    <div class="lang-switch" style="position:fixed; top:20px; right:200px; display:flex; gap:10px; z-index:9999; background:white; padding:10px; border-radius:20px; box-shadow:0 4px 15px rgba(0,0,0,0.1);">
+        <a href="#" id="lang-fr" onclick="changeLang('fr')" style="text-decoration:none; color:#64748b; font-weight:bold; font-size:12px;">FR</a>
+        <a href="#" id="lang-en" onclick="changeLang('en')" style="text-decoration:none; color:#64748b; font-weight:bold; font-size:12px;">EN</a>
+    </div>
+    <div class="topbar">
+<div>
+<button class="retour" onclick="window.location.href='admin.html'"><i class="fa-solid fa-arrow-left" style="font-size:14px"></i> Retour</button>
+<button class="add" onclick="openForm()"><i class="fa-solid fa-plus" style="font-size:14px"></i> Ajouter</button>
+</div>
+
+<div>
+<button class="import" onclick="importExcel()"><i class="fa-solid fa-download" style="font-size:14px"></i> Import</button>
+<button class="export" onclick="exportExcel()"><i class="fa-solid fa-upload" style="font-size:14px"></i> Export</button>
+</div>
+</div>
+
+<!-- SEARCH -->
+<div class="search-container">
+<input class="search" placeholder="Rechercher étudiant..." onkeyup="searchStudent(this.value)">
+</div>
+
+<!-- TABLE -->
+<table>
+<thead>
+<tr>
+<th>Photo</th>
+<th>Nom & Prénom</th>
+<th>Email</th>
+<th>CIN</th>
+<th>Tél</th>
+<th>Classe</th>
+<th style="width: 180px;">Mot de passe</th>
+<th style="width: 140px;">Action</th>
+</tr>
+</thead>
+<tbody id="students"></tbody>
+</table>
+
+<!-- SECTION ABSENCES -->
+<div style="margin-top: 50px; background: white; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; animation: fadeIn 0.8s;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:15px;">
+        <h2 style="color:var(--secondary); font-size:20px; margin:0;"><i class="fa-solid fa-list-check" style="color:var(--primary); margin-right:8px;"></i> Suivi des Absences - Étudiants</h2>
+        <div style="display:flex; gap:10px; align-items:center;">
+            <select id="filterMatiereAbs" onchange="filterEtdAbsences()" style="padding:10px 15px; border-radius:30px; border:1px solid #e2e8f0; outline:none; font-family:Poppins; width:200px; box-shadow:0 3px 10px rgba(0,0,0,0.02); margin-bottom:0;">
+                <option value="all">Toutes les matières</option>
+                <option>Algorithmique</option>
+                <option>Programmation</option>
+                <option>Réseaux</option>
+                <option>Systèmes</option>
+                <option>Base de données</option>
+                <option>Intelligence Artificielle</option>
+                <option>Développement Web</option>
+                <option>Génie Logiciel</option>
+                <option>Mathématiques</option>
+                <option>Anglais</option>
+                <option>Gestion</option>
+            </select>
+            <input type="text" id="searchEtdAbs" placeholder="Rechercher étudiant..." onkeyup="filterEtdAbsences()" style="padding:10px 15px; border-radius:30px; border:1px solid #e2e8f0; outline:none; font-family:Poppins; width:250px; box-shadow:0 3px 10px rgba(0,0,0,0.02); margin-bottom:0;">
+        </div>
+    </div>
+
+    <table style="box-shadow:none; border:1px solid #e2e8f0; background:white;">
+        <thead style="background:#f8fafc;">
+            <tr>
+                <th style="color:var(--secondary); background:transparent; border-bottom:2px solid #e2e8f0; text-align:left;">Étudiant</th>
+                <th style="color:var(--secondary); background:transparent; border-bottom:2px solid #e2e8f0;">Classe</th>
+                <th style="color:var(--secondary); background:transparent; border-bottom:2px solid #e2e8f0; text-align:left;">Matière</th>
+                <th style="color:var(--secondary); background:transparent; border-bottom:2px solid #e2e8f0;">Nb. Absences</th>
+                <th style="color:var(--secondary); background:transparent; border-bottom:2px solid #e2e8f0;">Statut</th>
+            </tr>
+        </thead>
+        <tbody id="absencesList"></tbody>
+    </table>
+</div>
+
+<!-- MODAL -->
+<div class="modal" id="form">
+<div class="modal-content">
+
+<h3 id="modalTitle">Ajouter Étudiant</h3>
+
+<input type="hidden" id="editId">
+<input id="nom" placeholder="Nom">
+<input id="prenom" placeholder="Prénom">
+<input id="email" placeholder="Email">
+<input id="cin" placeholder="CIN">
+<input id="tel" placeholder="Téléphone">
+<input type="file" id="photoFile">
+<input type="text" id="photoUrl" placeholder="URL Photo (Optionnel)">
+
+<select id="classe">
+<option>INFO1</option>
+<option>INFO2</option>
+<option>INFO3</option>
+<option>ENG1</option>
+<option>ENG2</option>
+<option>GESTION1</option>
+</select>
+
+<button class="add" onclick="saveStudent()" id="saveBtn">Enregistrer</button>
+<button onclick="closeForm()">Annuler</button>
+
+</div>
+</div>
+
+<!-- SUCCESS MODAL -->
+<div class="modal" id="successModal">
+    <div class="modal-content" style="text-align:center;">
+        <div style="width:70px; height:70px; background:#d1fae5; color:#10b981; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 20px auto; font-size:30px;">
+            <i class="fa-solid fa-check"></i>
+        </div>
+        <h3>Compte Créé !</h3>
+        <p style="color:#64748b; font-size:14px; margin-bottom:20px;">Le compte étudiant a été créé. Voici les identifiants :</p>
+        
+        <div style="background:#f8fafc; padding:20px; border-radius:15px; text-align:left; border:1px solid #e2e8f0; margin-bottom:20px;">
+            <div style="margin-bottom:10px;">
+                <label style="margin:0; font-size:11px; text-transform:uppercase; letter-spacing:1px; color:#64748b;">Email</label>
+                <div style="display:flex; justify-content:space-between; align-items:center; font-weight:700; color:var(--secondary);">
+                    <span id="succEmail">---</span>
+                    <i class="fa-solid fa-copy" style="cursor:pointer; color:var(--primary);" onclick="copyToClipboard(document.getElementById('succEmail').innerText)"></i>
+                </div>
+            </div>
+            <div>
+                <label style="margin:0; font-size:11px; text-transform:uppercase; letter-spacing:1px; color:#64748b;">Mot de passe</label>
+                <div style="display:flex; justify-content:space-between; align-items:center; font-weight:700; color:var(--secondary);">
+                    <span id="succPass" style="font-family:monospace; font-size:18px;">---</span>
+                    <i class="fa-solid fa-copy" style="cursor:pointer; color:var(--primary);" onclick="copyToClipboard(document.getElementById('succPass').innerText)"></i>
+                </div>
+            </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:10px;">
+            <button class="add" style="justify-content:center; display:flex; align-items:center; gap:8px;" onclick="sendManualEmail('Étudiant', document.getElementById('succEmail').innerText, document.getElementById('succPass').innerText)">
+                <i class="fa-solid fa-envelope"></i> Envoyer Manuellement
+            </button>
+            <button class="retour" style="justify-content:center; display:flex; align-items:center; gap:8px; background:#f1f5f9; color:var(--secondary);" onclick="document.getElementById('successModal').style.display='none'">Fermer</button>
+        </div>
+    </div>
+</div>
+
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc, updateDoc }
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+import { getAuth, createUserWithEmailAndPassword, signOut }
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+const firebaseConfig = {
+apiKey:"AIzaSyD56AbWLar8R7qe4x__3a8dfZop6A1jew0",
+authDomain:"pfe2026-2cd50.firebaseapp.com",
+projectId:"pfe2026-2cd50"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+// Workaround to prevent admin logout when creating new users
+const secondaryApp = initializeApp(firebaseConfig, "SecondaryApp");
+const secondaryAuth = getAuth(secondaryApp);
+
+// --- CONFIGURATION EMAILJS ---
+const EMAILJS_PUBLIC_KEY = "89VgfdkHUrxYc1zoK"; 
+const EMAILJS_SERVICE_ID = "service_kt5zi5k"; 
+const EMAILJS_TEMPLATE_ID = "template_qrg9zr6"; 
+
+emailjs.init(EMAILJS_PUBLIC_KEY);
+
+async function sendEmailCredentials(name, email, password) {
+  try {
+    const templateParams = {
+      to_name: name,
+      to_email: email,
+      password: password,
+    };
+    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
+  } catch (err) {
+    console.error("EmailJS Error:", err);
+  }
+}
+
+window.togglePass = (id, pass) => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    if(el.innerText === "********") {
+        el.innerText = pass;
+        el.style.color = "var(--secondary)";
+    } else {
+        el.innerText = "********";
+        el.style.color = "var(--primary)";
+    }
+};
+
+window.copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text).then(() => {
+        alert("📋 Mot de passe copié !");
+    });
+};
+
+window.sendManualEmail = (name, email, pass) => {
+    const subject = encodeURIComponent("ESIP - Vos identifiants de connexion");
+    const body = encodeURIComponent(`Bonjour ${name},\n\nVoici vos identifiants pour accéder au portail ESIP Gafsa :\n\nEmail : ${email}\nMot de passe : ${pass}\n\nLien de connexion : ${window.location.origin}/login.html\n\nCordialement,\nService Administratif ESIP`);
+    window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+};
+
+let studentsData=[]
+
+// UI
+window.openForm=(edit=false, data={})=>{
+    document.getElementById("modalTitle").innerText = edit ? "Modifier Étudiant" : "Ajouter Étudiant";
+    document.getElementById("saveBtn").innerText = edit ? "Enregistrer" : "Enregistrer";
+    
+    document.getElementById("editId").value = data.id || "";
+    document.getElementById("nom").value = data.nom || "";
+    document.getElementById("prenom").value = data.prenom || "";
+    document.getElementById("email").value = data.email || "";
+    document.getElementById("cin").value = data.cin || "";
+    document.getElementById("tel").value = data.tel || "";
+    document.getElementById("photoUrl").value = data.photo || "";
+    document.getElementById("classe").value = data.classe || "INFO1";
+    
+    form.style.display="flex"
+}
+
+window.closeForm=()=>form.style.display="none"
+
+// password
+function generatePassword(){
+    return Math.floor(10000000 + Math.random() * 90000000).toString();
+}
+
+// SAVE (ADD OR EDIT)
+window.saveStudent = async function(){
+    let editId = document.getElementById("editId").value;
+    let nomVal=document.getElementById("nom").value.trim()
+    let prenomVal=document.getElementById("prenom").value.trim()
+    let emailVal=document.getElementById("email").value.trim()
+    let cinVal=document.getElementById("cin").value.trim()
+    let telVal=document.getElementById("tel").value.trim()
+    let classeVal=document.getElementById("classe").value
+    let file=document.getElementById("photoFile").files[0]
+    let urlVal=document.getElementById("photoUrl").value.trim()
+
+    if(!nomVal || !emailVal){
+        alert("Remplissez les champs obligatoires")
+        return
+    }
+
+    let photoURL = urlVal;
+    if(file){
+        photoURL = await new Promise(resolve=>{
+            let reader=new FileReader()
+            reader.onload=()=>resolve(reader.result)
+            reader.readAsDataURL(file)
+        })
+    }
+
+    try{
+        if(editId){
+            // EDIT
+            await updateDoc(doc(db,"etd",editId),{
+                nom:nomVal,
+                prenom:prenomVal,
+                email:emailVal,
+                cin:cinVal,
+                tel:telVal,
+                classe:classeVal,
+                photo:photoURL
+            })
+            alert("Étudiant modifié avec succès")
+        } else {
+            // ADD
+            let password=generatePassword()
+            let userCredential = await createUserWithEmailAndPassword(secondaryAuth,emailVal,password)
+            await signOut(secondaryAuth); // prevent session conflicts
+            let uid = userCredential.user.uid
+
+            // Envoyer l'email
+            await sendEmailCredentials(nomVal + " " + prenomVal, emailVal, password);
+
+            await setDoc(doc(db,"etd",uid),{
+                nom:nomVal,
+                prenom:prenomVal,
+                email:emailVal,
+                cin:cinVal,
+                tel:telVal,
+                classe:classeVal,
+                role:"etudiant",
+                password:password,
+                photo:photoURL
+            })
+            // alert("Ajouté avec succès et email envoyé !\nPassword: "+password)
+            document.getElementById("succEmail").innerText = emailVal;
+            document.getElementById("succPass").innerText = password;
+            document.getElementById("form").style.display = "none";
+            document.getElementById("successModal").style.display = "flex";
+        }
+        // closeForm()
+    }catch(e){
+        alert(e.message)
+    }
+}
+
+
+// DISPLAY
+onSnapshot(collection(db,"etd"),snap=>{
+    students.innerHTML=""
+    studentsData=[]
+
+    snap.forEach(d=>{
+        let s=d.data()
+        if(!s.role || s.role.toLowerCase()!=="etudiant") return
+        s.id=d.id
+        studentsData.push(s)
+        renderStudentRow(s);
+    })
+    renderAbsencesList();
+})
+
+function renderStudentRow(s) {
+    const passId = `pass-${s.id}`;
+    const studentsEl = document.getElementById("students");
+    
+    const tr = document.createElement("tr");
+    tr.id = `row-${s.id}`;
+    
+    // Photo cell - create img properly to avoid Base64 HTML corruption
+    const tdPhoto = document.createElement("td");
+    const img = document.createElement("img");
+    img.className = "photo";
+    img.src = s.photo || 'https://via.placeholder.com/40';
+    img.onerror = function() { this.src = 'https://via.placeholder.com/40'; };
+    tdPhoto.appendChild(img);
+    tr.appendChild(tdPhoto);
+    
+    // Name
+    const tdNom = document.createElement("td");
+    tdNom.style.cssText = "text-align:left; font-weight:600; color:var(--secondary);";
+    tdNom.textContent = `${s.nom} ${s.prenom}`;
+    tr.appendChild(tdNom);
+    
+    // Email
+    const tdEmail = document.createElement("td");
+    tdEmail.style.fontSize = "13px";
+    tdEmail.textContent = s.email;
+    tr.appendChild(tdEmail);
+    
+    // CIN
+    const tdCin = document.createElement("td");
+    tdCin.textContent = s.cin || '-';
+    tr.appendChild(tdCin);
+    
+    // Tel
+    const tdTel = document.createElement("td");
+    tdTel.style.cssText = "font-weight:700; color:var(--primary);";
+    tdTel.textContent = s.tel || '-';
+    tr.appendChild(tdTel);
+    
+    // Classe
+    const tdClasse = document.createElement("td");
+    tdClasse.innerHTML = `<span style="background:#f1f5f9; padding:4px 10px; border-radius:6px; font-size:12px; font-weight:700;">${s.classe}</span>`;
+    tr.appendChild(tdClasse);
+    
+    // Password
+    const tdPass = document.createElement("td");
+    tdPass.innerHTML = `
+        <div style="display:flex; align-items:center; justify-content:center; gap:8px;">
+            <span id="${passId}" style="font-family:monospace; background:#fafafa; padding:5px 10px; border-radius:8px; color:var(--primary); font-size:13px; font-weight:700; min-width:80px;">********</span>
+            <div style="display:flex; gap:4px;">
+                <button class="btn" style="padding:4px 8px; background:#f1f5f9; color:#64748b; font-size:11px; width:auto; border:none; cursor:pointer;" onclick="togglePass('${passId}', '${s.password}')" title="Afficher"><i class="fa-solid fa-eye"></i></button>
+                <button class="btn" style="padding:4px 8px; background:#f1f5f9; color:var(--primary); font-size:11px; width:auto; border:none; cursor:pointer;" onclick="copyToClipboard('${s.password}')" title="Copier"><i class="fa-solid fa-copy"></i></button>
+            </div>
+        </div>
+    `;
+    tr.appendChild(tdPass);
+    
+    // Actions
+    const tdActions = document.createElement("td");
+    tdActions.innerHTML = `
+        <div style="display:flex; gap:5px; justify-content:center;">
+          <button class="edit" style="width:auto; margin:0;" onclick="editStudent('${s.id}')" title="Modifier"><i class="fa-solid fa-pen"></i></button>
+          <button class="btn" style="border:none; cursor:pointer; background:#10b981; color:white; padding:6px 10px; border-radius:8px;" onclick="sendManualEmail('${s.nom} ${s.prenom}', '${s.email}', '${s.password}')" title="Envoyer mdp"><i class="fa-solid fa-envelope"></i></button>
+          <button class="delete" style="width:auto; margin:0;" onclick="deleteStudent('${s.id}')" title="Supprimer"><i class="fa-solid fa-trash"></i></button>
+        </div>
+    `;
+    tr.appendChild(tdActions);
+    
+    studentsEl.appendChild(tr);
+}
+
+window.editStudent = (id) => {
+    let s = studentsData.find(x => x.id === id);
+    if(s) openForm(true, s);
+}
+
+// DELETE
+window.deleteStudent=async(id)=>{
+    if(confirm("Supprimer cet étudiant ?")) {
+        await deleteDoc(doc(db,"etd",id))
+    }
+}
+
+// SEARCH
+window.searchStudent=(text)=>{
+    students.innerHTML=""
+    studentsData
+    .filter(s=>(
+        (s.nom||'').toLowerCase().includes(text.toLowerCase()) ||
+        (s.prenom||'').toLowerCase().includes(text.toLowerCase()) ||
+        (s.classe||'').toLowerCase().includes(text.toLowerCase())
+    ))
+    .forEach(s=>{
+        renderStudentRow(s);
+    })
+}
+
+// EXPORT
+window.exportExcel=()=>{
+let data=studentsData.map(s=>({
+Nom:s.nom,
+Prenom:s.prenom,
+Email:s.email,
+CIN:s.cin,
+Tel:s.tel,
+Classe:s.classe,
+Password:s.password
+}))
+
+let ws=XLSX.utils.json_to_sheet(data)
+let wb=XLSX.utils.book_new()
+XLSX.utils.book_append_sheet(wb,ws,"Etudiants")
+XLSX.writeFile(wb,"etudiants.xlsx")
+}
+
+// IMPORT
+window.importExcel=()=>{
+let input=document.createElement("input")
+input.type="file"
+input.accept=".xlsx, .csv"
+
+input.onchange=(e)=>{
+let reader=new FileReader()
+
+reader.onload=async(evt)=>{
+let wb=XLSX.read(evt.target.result,{type:"array"})
+let data=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]])
+
+for(let s of data){
+
+let password=s.Password || generatePassword()
+
+let userCredential = await createUserWithEmailAndPassword(auth,s.Email,password)
+let uid = userCredential.user.uid
+
+// Envoyer l'email
+await sendEmailCredentials((s.Nom || "") + " " + (s.Prenom || ""), s.Email, password);
+
+await setDoc(doc(db,"etd",uid),{
+nom:s.Nom,
+prenom:s.Prenom,
+email:s.Email,
+cin:s.CIN,
+tel:s.Tel,
+classe:s.Classe,
+role:"etudiant",
+password:password,
+photo:""
+})
+}
+
+alert("Import terminé et emails envoyés avec succès")
+}
+
+reader.readAsArrayBuffer(e.target.files[0])
+}
+
+input.click()
+}
+
+// === GESTION ABSENCES ===
+let absencesData = [];
+let schedulesData = [];
+
+// Load schedules to map matiere -> classes
+onSnapshot(collection(db, "schedules"), snap => {
+    schedulesData = [];
+    snap.forEach(d => {
+        let s = d.data();
+        if(s.classe && s.matiere) {
+            schedulesData.push(s);
+        }
+    });
+    renderAbsencesList();
+});
+
+onSnapshot(collection(db,"presences"), snap => {
+    absencesData = [];
+    snap.forEach(d => {
+        let abs = d.data();
+        abs.id = d.id;
+        absencesData.push(abs);
+    });
+    renderAbsencesList();
+});
+
+function renderAbsencesList() {
+    let list = document.getElementById("absencesList");
+    if(!list) return;
+    
+    let term = document.getElementById("searchEtdAbs").value.toLowerCase();
+    let selectedMatiere = document.getElementById("filterMatiereAbs").value;
+    
+    list.innerHTML = "";
+    
+    studentsData.forEach(st => {
+        let prenom = st.prenom || '';
+        let stName = (st.nom + ' ' + prenom).toLowerCase();
+        
+        // Match Search Filter
+        if(term && !stName.includes(term) && !(st.classe||'').toLowerCase().includes(term)) return;
+
+        // If a specific matière is selected:
+        if(selectedMatiere !== "all") {
+            // Check if student's class studies this matière
+            let classStudiesThis = schedulesData.some(sch => sch.matiere === selectedMatiere && sch.classe === st.classe);
+            
+            if(classStudiesThis) {
+                // Find absences for this specific matière
+                let eAbs = absencesData.filter(a => a.studentId === st.id && a.matiere === selectedMatiere);
+                let totalAbs = eAbs.length; // Each record in 'presences' might be 1 absence or we sum abs.absences? Wait, in previous code: abs.absences > 0.
+                totalAbs = eAbs.reduce((sum, a) => sum + (a.absences || a.present===false ? 1 : 0), 0);
+                
+                // Wait, previous code used `abs.absences` for student! Let's check how student absences are stored. 
+                // Ah, previous code: stAbsences.forEach(abs => { list.innerHTML += abs.absences });
+                // Let's assume the previous db structure: 'abs.absences' is a number!
+                totalAbs = eAbs.reduce((sum, a) => sum + (Number(a.absences) || 0), 0);
+
+                let status = "En Règle";
+                let statusColor = "#10b981"; 
+                let statusBg = "#d1fae5";
+                
+                if(totalAbs >= 5) {
+                    status = "Éliminé";
+                    statusColor = "#ef4444";
+                    statusBg = "#fee2e2";
+                } else if(totalAbs >= 3) {
+                    status = "Attention";
+                    statusColor = "#f59e0b";
+                    statusBg = "#fef3c7";
+                }
+
+                list.innerHTML += `
+                <tr>
+                    <td style="font-weight:600; color:var(--secondary); text-align:left;"><img src="${st.photo || 'https://via.placeholder.com/40'}" style="width:25px;height:25px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:8px;"> ${st.nom} ${prenom}</td>
+                    <td><span style="background:#f1f5f9; padding:4px 10px; border-radius:6px; font-size:12px; font-weight:700;">${st.classe || '-'}</span></td>
+                    <td style="text-align:left; font-weight:600;">${selectedMatiere}</td>
+                    <td style="font-weight:800; font-size:15px; ${totalAbs > 0 ? 'color:var(--secondary);' : 'color:#10b981;'}">${totalAbs}</td>
+                    <td><span style="background:${statusBg}; color:${statusColor}; padding:4px 10px; border-radius:6px; font-size:11px; font-weight:800; text-transform:uppercase;">${status}</span></td>
+                </tr>
+                `;
+            }
+        } 
+        // If "Toutes les matières" is selected
+        else {
+            let stAbsences = absencesData.filter(a => a.studentId === st.id);
+            
+            if (stAbsences.length === 0) {
+                list.innerHTML += `
+                <tr>
+                    <td style="font-weight:600; color:var(--secondary); text-align:left;"><img src="${st.photo || 'https://via.placeholder.com/40'}" style="width:25px;height:25px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:8px;"> ${st.nom} ${prenom}</td>
+                    <td><span style="background:#f1f5f9; padding:4px 10px; border-radius:6px; font-size:12px; font-weight:700;">${st.classe || '-'}</span></td>
+                    <td style="text-align:left; font-weight:600; color:#94a3b8;">-</td>
+                    <td style="font-weight:800; font-size:15px; color:#10b981;">0</td>
+                    <td><span style="background:#d1fae5; color:#10b981; padding:4px 10px; border-radius:6px; font-size:11px; font-weight:800; text-transform:uppercase;">En Règle</span></td>
+                </tr>
+                `;
+            } else {
+                stAbsences.forEach(abs => {
+                    let status = "En Règle";
+                    let statusColor = "#10b981"; 
+                    let statusBg = "#d1fae5";
+                    
+                    if(abs.absences >= 5) {
+                        status = "Éliminé";
+                        statusColor = "#ef4444";
+                        statusBg = "#fee2e2";
+                    } else if(abs.absences >= 3) {
+                        status = "Attention";
+                        statusColor = "#f59e0b";
+                        statusBg = "#fef3c7";
+                    }
+                    
+                    list.innerHTML += `
+                    <tr>
+                        <td style="font-weight:600; color:var(--secondary); text-align:left;"><img src="${st.photo || 'https://via.placeholder.com/40'}" style="width:25px;height:25px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:8px;"> ${st.nom} ${prenom}</td>
+                        <td><span style="background:#f1f5f9; padding:4px 10px; border-radius:6px; font-size:12px; font-weight:700;">${st.classe || '-'}</span></td>
+                        <td style="text-align:left; font-weight:600;">${abs.matiere || '-'}</td>
+                        <td style="font-weight:800; font-size:15px; ${abs.absences > 0 ? 'color:var(--secondary);' : 'color:#10b981;'}">${abs.absences}</td>
+                        <td><span style="background:${statusBg}; color:${statusColor}; padding:4px 10px; border-radius:6px; font-size:11px; font-weight:800; text-transform:uppercase;">${status}</span></td>
+                    </tr>
+                    `;
+                });
+            }
+        }
+    });
+}
+
+window.filterEtdAbsences = () => {
+    // Just re-render. renderAbsencesList uses the DOM values.
+    renderAbsencesList();
+}
+// We already replaced it above
+
+</script>
+
+  <div id="google_translate_element" style="display:none;"></div>
+  <script type="text/javascript">
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({ pageLanguage: 'fr', autoDisplay: false }, 'google_translate_element');
+    }
+    window.addEventListener('load', function() {
+      var lang = localStorage.getItem('preferred_lang') || 'fr';
+      var checkTranslate = setInterval(function() {
+        if (lang && lang !== 'fr') {
+          var select = document.querySelector('.goog-te-combo');
+          if (select) {
+            select.value = lang;
+            select.dispatchEvent(new Event('change'));
+            clearInterval(checkTranslate);
+          }
+        } else {
+          clearInterval(checkTranslate);
+        }
+      }, 500);
+      setTimeout(function() { clearInterval(checkTranslate); }, 5000);
+    });
+  </script>
+  <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+  <script src="chatbot.js"></script>
+</body>
+</html>

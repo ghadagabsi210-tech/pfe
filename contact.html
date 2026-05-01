@@ -1,0 +1,335 @@
+ <!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>ESIP Gafsa – Contact</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+border-radius:12px;
+border:1px solid #ddd;
+font-size:15px;
+transition:0.3s;
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus{
+border-color:#8c7851;
+box-shadow:0 0 5px rgba(140,120,81,0.4);
+outline:none;
+}
+
+.contact-form button{
+background:linear-gradient(135deg,#8c7851,#a68a64);
+color:white;
+border:none;
+padding:14px;
+border-radius:12px;
+font-size:16px;
+font-weight:700;
+cursor:pointer;
+transition:0.3s;
+}
+
+.contact-form button:hover{
+transform:translateY(-2px);
+box-shadow:0 8px 20px rgba(0,0,0,0.2);
+}
+nav h2{
+    font-size:22px;
+    font-weight:800;
+}
+
+/* ===== HERO ===== */
+.hero{
+    height:65vh; 
+    background-size:cover;
+    background-position:center top;
+    background-repeat:no-repeat;
+    position:relative;
+    animation: zoomIn 12s ease-in-out infinite alternate;
+    transition: background-image 1.2s ease-in-out;
+}
+
+@keyframes zoomIn{
+    from{transform:scale(1);}
+    to{transform:scale(1.06);}
+}
+
+.hero::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:rgba(0,0,0,0.45);
+}
+
+.hero-content{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    color:white;
+    z-index:1;
+}
+
+.hero-content h1{
+    font-size:46px;
+    font-weight:900;
+}
+
+/* ===== CONTENT ===== */
+.container{
+    max-width:1200px;
+    margin:-40px auto 80px; /* overlap خفيف برك */
+    background:white;
+    padding:60px;
+    border-radius:35px;
+    box-shadow:0 25px 70px rgba(0,0,0,0.15);
+    animation: fadeUp 1s ease;
+}
+
+body.dark .container{
+    background:#1e1e1e;
+}
+
+@keyframes fadeUp{
+    from{opacity:0; transform:translateY(40px);}
+    to{opacity:1; transform:translateY(0);}
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:50px;
+}
+
+.container h2{
+    color:#3d2b1f;
+    margin-bottom:20px;
+    font-size:30px;
+}
+
+.container p{
+    font-size:16px;
+    line-height:1.8;
+    margin-bottom:30px;
+}
+
+/* CONTACT ITEMS */
+.contact-item{
+    display:flex;
+    align-items:center;
+    gap:18px;
+    margin-bottom:22px;
+    font-size:16px;
+}
+
+.icon{
+    width:46px;
+    height:46px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:white;
+    font-size:20px;
+}
+
+.phone{background:#3d2b1f;}
+.fax{background:#726142;}
+.mobile{background:#8c7851;}
+.mail{background:#a68a64;}
+.loc{background:#d4c2ad;}
+
+/* MAP */
+iframe{
+    width:100%;
+    height:300px;
+    border:none;
+    border-radius:20px;
+}
+
+/* FOOTER */
+footer{
+    background:#3d2b1f;
+    color:white;
+    text-align:center;
+    padding:30px;
+}
+
+/* BACK BUTTON */
+.btn-back{
+    background:#8c7851;
+    border:2px solid white;
+    color:white;
+    padding:8px 18px;
+    border-radius:25px;
+    font-weight:700;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+.btn-back:hover{
+    background:white;
+    color:#3d2b1f;
+}
+
+@media(max-width:900px){
+    .grid{grid-template-columns:1fr;}
+    .hero-content h1{font-size:34px;}
+}
+</style>
+</head>
+
+<body>
+
+<nav>
+    <h2>ESIP Gafsa</h2>
+    <button class="btn-back" onclick="goHome()"><i class="fa-solid fa-arrow-left" style="font-size:14px;margin-right:4px"></i> Retour</button>
+</nav>
+
+<section class="hero">
+    <div class="hero-content">
+        <h1>Contactez l’ESIP Gafsa</h1>
+    </div>
+</section>
+
+<div class="container">
+    <div class="grid">
+        <div>
+            <h2>À propos</h2>
+            <p>
+                L’École Supérieure d’Informatique et de Programmation (ESIP Gafsa)
+                forme des ingénieurs compétents et adaptés aux besoins du marché
+                avec un taux d’employabilité élevé.
+            </p>
+
+            <div class="contact-item"><div class="icon phone"><i class="fa-solid fa-phone" style="font-size:18px"></i></div><div>70 001 547 – 70 001 817</div></div>
+            <div class="contact-item"><div class="icon fax"><i class="fa-solid fa-fax" style="font-size:18px"></i></div><div>76 211 930</div></div>
+            <div class="contact-item"><div class="icon mobile"><i class="fa-solid fa-mobile-screen" style="font-size:18px"></i></div><div>23 344 817</div></div>
+            <div class="contact-item"><div class="icon mail"><i class="fa-solid fa-envelope" style="font-size:18px"></i></div><div>contact@esip.tn</div></div>
+            <div class="contact-item"><div class="icon loc"><i class="fa-solid fa-location-dot" style="font-size:18px"></i></div><div>Campus universitaire Sidi Ahmed Zarroug, Gafsa</div></div>
+        </div>
+
+        <div>
+            <h2>Localisation</h2>
+            <iframe src="https://www.google.com/maps?q=ESIP%20Gafsa&output=embed"></iframe>
+            <h2 style="margin-top:35px;">Envoyer un message</h2>
+
+<form class="contact-form" id="contactForm">
+
+<input type="email" id="email" placeholder="Votre Email" required>
+
+<input type="tel" id="phone" placeholder="Numéro de téléphone" required>
+
+<textarea id="message" placeholder="Votre message..." rows="4" required></textarea>
+
+<button type="submit">Envoyer</button>
+
+</form>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <p>© ESIP Gafsa – Tous droits réservés</p>
+</footer>
+
+<script>
+function goHome(){
+    window.location.href = "login.html";
+}
+
+const images = ["esip facade.png","esip etd.png","esip admin.png"];
+let index = 0;
+const hero = document.querySelector(".hero");
+hero.style.backgroundImage = `url('${images[0]}')`;
+
+setInterval(()=>{
+    index = (index + 1) % images.length;
+    hero.style.backgroundImage = `url('${images[index]}')`;
+},5000);
+
+</script>
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD56AbWLar8R7qe4x__3a8dfZop6A1jew0",
+  authDomain: "pfe2026-2cd50.firebaseapp.com",
+  projectId: "pfe2026-2cd50",
+  storageBucket: "pfe2026-2cd50.firebasestorage.app",
+  messagingSenderId: "263356463306",
+  appId: "1:263356463306:web:3d8cbbc3e760cbe0069c33"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+document.getElementById("contactForm").addEventListener("submit", async function(e){
+
+e.preventDefault();
+
+const email = document.getElementById("email").value;
+const phone = document.getElementById("phone").value;
+const message = document.getElementById("message").value;
+
+try{
+
+await addDoc(collection(db,"messages"),{
+
+email: email,
+phone: phone,
+message: message,
+date: new Date()
+
+});
+
+alert("Message envoyé avec succès");
+
+document.getElementById("contactForm").reset();
+
+}catch(error){
+
+console.error(error);
+alert("Erreur lors de l'envoi");
+
+}
+
+});
+
+</script>
+
+  <div id=""google_translate_element"" style=""display:none;""></div>
+  <script type=""text/javascript"">
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({ pageLanguage: 'fr', autoDisplay: false }, 'google_translate_element');
+    }
+    window.addEventListener('load', function() {
+      var lang = localStorage.getItem('preferred_lang') || 'fr';
+      var checkTranslate = setInterval(function() {
+        if (lang && lang !== 'fr') {
+          var select = document.querySelector('.goog-te-combo');
+          if (select) {
+            select.value = lang;
+            select.dispatchEvent(new Event('change'));
+            clearInterval(checkTranslate);
+          }
+        } else {
+          clearInterval(checkTranslate);
+        }
+      }, 500);
+      setTimeout(function() { clearInterval(checkTranslate); }, 5000);
+    });
+  </script>
+  <script type=""text/javascript"" src=""https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit""></script>
+</body>
+</html>
+
+

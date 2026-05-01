@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>ESIP - Outil de Migration de Données</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; background: #f1f5f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; max-width: 500px; width: 90%; }
+        h1 { color: #0f172a; margin-bottom: 20px; }
+        p { color: #64748b; margin-bottom: 30px; }
+        #progress { margin-top: 20px; font-weight: 600; color: #2563eb; }
+        #log { margin-top: 20px; text-align: left; font-size: 12px; height: 150px; overflow-y: auto; background: #f8fafc; padding: 10px; border-radius: 10px; border: 1px solid #e2e8f0; }
+        button { background: #2563eb; color: white; border: none; padding: 15px 30px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #1d4ed8; transform: translateY(-2px); }
+        button:disabled { background: #cbd5e1; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h1>Migration des Données</h1>
+    <p>Cet outil va copier vos données de <b>users</b> vers les nouvelles collections <b>etd</b>, <b>professeur</b>, et <b>employes</b>.</p>
+    
+    <button id="startBtn">Lancer la Migration</button>
+    
+    <div id="progress">Attente...</div>
+    <div id="log"></div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, getDocs, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey:"AIzaSyD56AbWLar8R7qe4x__3a8dfZop6A1jew0",
+        authDomain:"pfe2026-2cd50.firebaseapp.com",
+        projectId:"pfe2026-2cd50",
+        storageBucket:"pfe2026-2cd50.appspot.com",
+        messagingSenderId:"263356463306",
+        appId:"1:263356463306:web:bf3b02eb9ec97dce069c33"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const startBtn = document.getElementById('startBtn');
+    const progress = document.getElementById('progress');
+    const log = document.getElementById('log');
+
+    function addLog(msg) {
+        const div = document.createElement('div');
+        div.innerText = msg;
+        log.appendChild(div);
+        log.scrollTop = log.scrollHeight;
+    }
+
+    startBtn.onclick = async () => {
+        startBtn.disabled = true;
+        progress.innerText = "Migration en cours...";
+        addLog("Début de la récupération des utilisateurs...");
+
+        try {
+            const snap = await getDocs(collection(db, "users"));
+            addLog(`Trouvé ${snap.size} utilisateurs.`);
+
+            let count = 0;
+            for (const d of snap.docs) {
+                const data = d.data();
+                const id = d.id;
+                let targetColl = "";
+                let finalData = { ...data };
+
+                if (data.role === "prof") {
+                    targetColl = "professeur";
+                    // Map 'tel' to 'numero de telephone'
+                    finalData["numero de telephone"] = data.tel || data.numero || "";
+                } else if (data.role === "etudiant") {
+                    targetColl = "etd";
+                } else if (data.role === "employe") {
+                    targetColl = "employes";
+                }
+
+                if (targetColl) {
+                    await setDoc(doc(db, targetColl, id), finalData);
+                    addLog(`[OK] ${data.nom} -> ${targetColl}`);
+                    count++;
+                } else {
+                    addLog(`[SKIP] ${data.nom} (Rôle inconnu: ${data.role})`);
+                }
+            }
+
+            progress.innerText = "Migration terminée !";
+            addLog(`✅ Terminé ! ${count} utilisateurs migrés.`);
+            alert("Migration réussie ! Vous pouvez maintenant fermer cette page et rafraîchir vos listes.");
+        } catch (e) {
+            addLog(`❌ Erreur: ${e.message}`);
+            progress.innerText = "Erreur lors de la migration.";
+        }
+    };
+</script>
+
+</body>
+</html>

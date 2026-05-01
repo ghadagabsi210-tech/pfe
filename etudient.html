@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Espace Étudiant PRO</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="darkmode.css">
+<script src="darkmode.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+<style>
+/* GLOBAL STYLES */
+body{
+font-family: 'Poppins', sans-serif;
+background: #f8fafc;
+margin:0;
+padding:20px;
+}
+
+header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+background:linear-gradient(135deg,#0f172a,#1e40af);
+color:white;
+padding:20px 40px;
+border-radius:20px;
+box-shadow:0 10px 30px rgba(0,0,0,0.1);
+margin-bottom:30px;
+}
+
+.btn{
+padding:12px 25px;
+border:none;
+border-radius:12px;
+cursor:pointer;
+font-weight:700;
+transition:0.3s;
+}
+
+.logout{background:#ef4444;color:white;}
+.notifBtn{background:#2563eb;color:white;}
+.edit-btn {background:#0f172a; color:white; padding: 6px 12px; font-size: 13px;}
+
+.btn:hover{transform:scale(1.05);}
+
+/* PROFILE */
+.profile{
+display:flex;
+align-items:center;
+justify-content: space-between;
+flex-wrap: wrap;
+gap:15px;
+background:white;
+padding:20px 25px;
+border-radius:15px;
+box-shadow:0 10px 25px rgba(0,0,0,0.1);
+margin-bottom:30px;
+}
+
+.profile-left {
+display:flex;
+align-items:center;
+gap:20px;
+}
+
+.profile img{
+width:80px;
+height:80px;
+border-radius:50%;
+object-fit:cover;
+border:3px solid #2563eb;
+}
+
+.grid-planning {
+    display: grid;
+    grid-template-columns: 100px repeat(6, 1fr);
+    gap: 0;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-top: 20px;
+}
+
+.cell {
+    border: 0.5px solid #e2e8f0;
+    padding: 12px;
+    min-height: 100px;
+    font-size: 11px;
+    background: white;
+}
+
+.cell.header {
+    background: #0f172a;
+    color: white;
+    font-weight: 700;
+    text-align: center;
+    min-height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+}
+
+.course-card b { display: block; color: #0f172a; margin-bottom: 5px; font-size: 11px; }
+.course-card span { font-size: 10px; color: #64748b; display: flex; align-items: center; gap: 5px; margin-bottom: 2px; }
+
+.pose-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 600;
+    opacity: 0.5;
+}
+.pose-indicator i { font-size: 18px; margin-bottom: 4px; }
+
+.profile-info h3 { margin: 0; color: #0f172a; font-size: 22px; font-weight:800; }
+.profile-info p { margin: 5px 0; color: #64748b; font-size: 15px; font-weight:600; }
+.profile-info span {display: inline-flex; align-items:center; gap:5px; background: #f1f5f9; padding: 6px 12px; border-radius: 8px; margin-top: 8px; font-size: 13px; font-weight: 700; color: #2563eb;}
+
+/* TABLE */
+table{
+width:100%;
+background:white;
+border-radius:15px;
+overflow:hidden;
+border-collapse:collapse;
+box-shadow:0 10px 30px rgba(0,0,0,0.1);
+margin-bottom: 40px;
+}
+
+th{
+background:linear-gradient(45deg,#0f172a,#2563eb);
+color:white;
+padding:12px;
+}
+
+td{
+padding:12px;
+text-align:center;
+border-bottom:1px solid #eee;
+}
+
+tr{
+transition:0.3s;
+}
+
+tr:hover{
+background:#fafaf5;
+transform:scale(1.01);
+}
+
+/* STATUS */
+.ok{color:green;font-weight:bold;}
+.warn{color:orange;font-weight:bold;}
+.danger{color:red;font-weight:bold;}
+
+/* NOTIF */
+.notif{
+position:fixed;
+top:20px;
+right:20px;
+padding:15px 25px;
+border-radius:12px;
+color:white;
+font-weight:600;
+transform:translateX(150%);
+transition:0.5s;
+z-index:999;
+}
+
+.notif.show{transform:translateX(0);}
+
+.success{background:#84a98c;}
+.warning{background:#ffc107;color:black;}
+.dangerbg{background:#dc3545;}
+
+/* MODAL */
+.modal{
+position:fixed;
+top:0;left:0;
+width:100%;height:100%;
+background:rgba(0,0,0,0.5);
+display:none;
+justify-content:center;
+align-items:center;
+z-index:1000;
+}
+
+.modal-content{
+background:white;
+padding:25px;
+border-radius:12px;
+width:400px;
+max-height: 90vh;
+overflow-y: auto;
+}
+
+.modal-content h3 {margin-top:0; color:#0f172a;}
+.modal-content input, .modal-content button {
+width:100%;
+padding:12px;
+margin:8px 0;
+border:1px solid #ddd;
+border-radius:8px;
+font-family: Poppins;
+}
+.modal-content .save-btn {background:#8c7851; color:white; font-weight:700; border:none; cursor:pointer;}
+.modal-content .cancel-btn {background:#eee; color:#333; font-weight:600; border:none; cursor:pointer;}
+
+.main-layout {
+  display: flex;
+  gap: 30px;
+  margin-top: 30px;
+  align-items: flex-start;
+}
+
+.left-content { flex: 2; }
+.right-content { flex: 1; position: sticky; top: 100px; animation: slideInRight 0.8s ease-out; }
+
+.contact-section {
+  background: white;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.05);
+  border: 1px solid #e2e8f0;
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(50px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.status-eliminated { color: #ef4444 !important; font-weight: 800; }
+.status-warning { color: #f59e0b !important; font-weight: 700; }
+.status-ok { color: #10b981 !important; font-weight: 700; }
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+<h1><i class="fa-solid fa-graduation-cap" style="font-size:26px;margin-right:8px"></i> Espace Étudiant</h1>
+
+<div>
+<button class="btn notifBtn" onclick="manualNotif()"><i class="fa-solid fa-bell" style="font-size:16px"></i></button>
+<button class="btn logout" onclick="logout()">Déconnexion</button>
+</div>
+
+</header>
+
+<!-- PROFILE -->
+<div class="profile">
+  <div class="profile-left">
+    <img id="studentPhoto" src="https://via.placeholder.com/80">
+    <div class="profile-info">
+      <h3 id="studentName">Nom</h3>
+      <p id="studentClasse">Classe</p>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <span id="studentCin"><i class="fa-solid fa-id-card"></i> CIN: ...</span>
+        <span id="studentEmail"><i class="fa-solid fa-envelope"></i> ...</span>
+        <span id="studentNum"><i class="fa-solid fa-phone"></i> ...</span>
+      </div>
+    </div>
+  </div>
+  <button class="btn edit-btn" onclick="openProfileModal()" style="background:#0f172a; border-radius:12px; padding:12px 20px;"><i class="fa-solid fa-user-pen" style="margin-right:8px"></i> Modifier mon Profil</button>
+</div>
+
+<div class="main-layout">
+  
+  <div class="left-content">
+    <!-- ABSENCES TABLE -->
+    <div class="section-card" style="background:white; padding:30px; border-radius:20px; box-shadow:0 10px 30px rgba(0,0,0,0.05); margin-bottom:30px;">
+        <h2 style="color: #0f172a; border-bottom: 2px solid #2563eb; padding-bottom: 10px; margin-bottom: 20px;"><i class="fa-solid fa-list-check"></i> Mes Absences par Matière</h2>
+        <table style="width:100%; border-collapse:collapse;">
+            <thead>
+                <tr style="background:#f1f5f9;">
+                    <th style="padding:15px; text-align:left;">Matière</th>
+                    <th style="padding:15px; text-align:center;">Absences</th>
+                    <th style="padding:15px; text-align:center;">Statut</th>
+                </tr>
+            </thead>
+            <tbody id="matieresTable"></tbody>
+        </table>
+    </div>
+
+    <div class="section-card" style="background:white; padding:30px; border-radius:20px; box-shadow:0 10px 30px rgba(0,0,0,0.05);">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid #2563eb; padding-bottom: 10px; margin-bottom: 20px;">
+            <h2 style="color: #0f172a; margin:0;"><i class="fa-solid fa-calendar-day"></i> Mon Emploi du Temps</h2>
+            <button onclick="downloadPDF()" style="padding:8px 20px; border-radius:10px; border:none; color:white; background:#2563eb; cursor:pointer; font-weight:700; display:flex; align-items:center; gap:8px; transition:0.3s; box-shadow:0 4px 15px rgba(37,99,235,0.2);">
+                <i class="fa-solid fa-file-pdf"></i> PDF
+            </button>
+        </div>
+        <div class="grid-planning" id="studentSchedule">
+            <div style="grid-column: span 7; padding: 40px; text-align: center; color: #94a3b8;">Sélectionnez une classe pour afficher l'emploi...</div>
+        </div>
+    </div>
+  </div>
+
+  <div class="right-content">
+    <!-- RECLAMATION FORM -->
+    <div class="contact-section">
+      <h3 style="margin-top:0; color:#0f172a;"><i class="fa-solid fa-circle-exclamation" style="color:#2563eb;"></i> Réclamations & Contact</h3>
+      <p style="font-size:13px; color:#64748b; margin-bottom:20px;">Envoyez une réclamation officielle ou un message à l'administration.</p>
+      <div class="contact-form">
+        <select id="msgRecipient" style="width:100%; padding:12px; margin-bottom:15px; border:1px solid #e2e8f0; border-radius:10px; font-family:Poppins; font-weight:600; background:#f8fafc;">
+          <option value="Administration">Direction / Administration</option>
+        </select>
+        <input type="text" id="contactSujet" placeholder="Objet de la réclamation" required style="width:100%; padding:12px; margin-bottom:15px; border:1px solid #e2e8f0; border-radius:10px;">
+        <div style="margin-bottom:15px;">
+          <label style="font-size:12px; font-weight:700; color:#64748b; margin-bottom:5px; display:block;"><i class="fa-solid fa-paperclip"></i> Justificatif (Image/PDF)</label>
+          <input type="file" id="msgFile" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:10px; background:#f8fafc; font-size:12px;">
+        </div>
+        <textarea id="contactMessage" rows="5" placeholder="Détaillez votre demande..." required style="width:100%; padding:12px; margin-bottom:15px; border:1px solid #e2e8f0; border-radius:10px; font-family:Poppins;"></textarea>
+        <button id="btnSendContact" onclick="sendReclamation()" style="width:100%; padding:15px; background:#2563eb; color:white; font-weight:700; border:none; border-radius:12px; cursor:pointer; transition:0.3s; box-shadow:0 4px 15px rgba(37,99,235,0.2);"><i class="fa-solid fa-paper-plane"></i> Envoyer la Réclamation</button>
+      </div>
+    </div>
+
+    <!-- MY RECLAMATIONS TRACKING -->
+    <div class="contact-section" style="margin-top:25px;">
+      <h3 style="margin-top:0; color:#0f172a;"><i class="fa-solid fa-clock-rotate-left" style="color:#2563eb;"></i> Suivi de mes demandes</h3>
+      <div id="myReclamationsList" style="display:flex; flex-direction:column; gap:12px; margin-top:15px;">
+        <p style="font-size:12px; color:#94a3b8; text-align:center; padding:10px;">Aucune demande envoyée.</p>
+      </div>
+    </div>
+
+    <!-- MY TEACHERS SECTION -->
+    <div class="contact-section" style="margin-top:25px;">
+      <h3 style="margin-top:0; color:#0f172a;"><i class="fa-solid fa-chalkboard-user" style="color:#2563eb;"></i> Mes Enseignants</h3>
+      <p style="font-size:13px; color:#64748b; margin-bottom:15px;">Liste des professeurs pour votre classe.</p>
+      <div id="profList" style="display:flex; flex-direction:column; gap:12px;">
+        <p style="font-size:12px; color:#94a3b8; text-align:center; padding:10px;">Chargement...</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL MODIFY PROFILE -->
+<div class="modal" id="profileModal">
+  <div class="modal-content">
+    <h3>Modifier mes informations</h3>
+    <label style="font-size:11px; color:#64748b; margin-top:10px; display:block;">Nom & Prénom (Lecture Seule)</label>
+    <input type="text" id="editFullname" disabled style="background:#f8fafc;">
+    
+    <label style="font-size:11px; color:#64748b; margin-top:10px; display:block;">CIN (Lecture Seule)</label>
+    <input type="text" id="editCin" disabled style="background:#f8fafc;">
+    
+    <label style="font-size:11px; color:#64748b; margin-top:10px; display:block;">Email (Lecture Seule)</label>
+    <input type="email" id="editEmail" disabled style="background:#f8fafc;">
+    
+    <label style="font-size:11px; color:#64748b; margin-top:10px; display:block;">Numéro de téléphone</label>
+    <input type="text" id="editNum" placeholder="Numéro de téléphone">
+    
+    <label style="font-size:11px; color:#64748b; margin-top:10px; display:block;">Lien de votre photo (URL)</label>
+    <input type="text" id="editPhoto" placeholder="Lien de votre photo (URL)">
+    
+    <label style="font-size:11px; color:#64748b; margin-top:10px; display:block;">Nouveau Mot de passe (Optionnel)</label>
+    <input type="password" id="editPassword" placeholder="Laissez vide pour garder l'actuel">
+    
+    <button class="save-btn" onclick="saveProfile()" style="background:#2563eb; color:white; margin-top:15px;">Enregistrer les modifications</button>
+    <button class="cancel-btn" onclick="closeProfileModal()">Annuler</button>
+  </div>
+</div>
+
+<!-- NOTIF -->
+<div id="notifBox" class="notif">
+<span id="notifText"></span>
+</div>
+
+<script>
+
+const firebaseConfig = {
+apiKey: "AIzaSyD56AbWLar8R7qe4x__3a8dfZop6A1jew0",
+authDomain: "pfe2026-2cd50.firebaseapp.com",
+projectId: "pfe2026-2cd50"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+let loaded=false;
+let notifications=[];
+let currentUserData = null;
+
+// AUTH FIX
+auth.onAuthStateChanged(function(user){
+
+if(!user){
+setTimeout(()=>{
+if(!auth.currentUser){
+window.location.href="login.html"
+}
+},1000)
+return
+}
+
+if(!loaded){
+loaded=true;
+loadData(user);
+startNotificationListener(user.uid);
+startReclamationListener(user.uid);
+}
+
+});
+
+async function loadData(user){
+
+let uid=user.uid
+
+let doc=await db.collection("etd").doc(uid).get()
+let u=doc.data()
+currentUserData = u;
+
+studentName.innerText = u.nom + " " + u.prenom;
+studentClasse.innerText = "Classe: " + u.classe;
+
+// LOAD SCHEDULE
+loadStudentSchedule(u.classe);
+studentPhoto.src = u.photo || "https://via.placeholder.com/80";
+
+// NEW FIELDS
+document.getElementById('studentCin').innerHTML = `<i class="fa-solid fa-id-card"></i> ${u.cin || 'CIN'}`;
+document.getElementById('studentEmail').innerHTML = `<i class="fa-solid fa-envelope"></i> ${u.email}`;
+document.getElementById('studentNum').innerHTML = `<i class="fa-solid fa-phone"></i> ${u.tel || u.numero || 'Mobile'}`;
+
+    let snap=await db.collection("presences")
+    .where("studentId","==",uid)
+    .get()
+    
+    matieresTable.innerHTML=""
+    notifications=[]
+    
+    snap.forEach(d=>{
+    
+    let data=d.data()
+    
+    let status="En Règle"
+    let cls="status-ok"
+    
+    if(data.absences >= 5){
+    status="ÉLIMINÉ"
+    cls="status-eliminated"
+    notifications.push("⚠️ ÉLIMINÉ : " + data.matiere)
+    } else if(data.absences == 4){
+    status="Attention"
+    cls="status-warning"
+    notifications.push("⚠️ Attention : " + data.matiere)
+    }
+    
+    matieresTable.innerHTML+=`
+    <tr style="border-bottom:1px solid #f1f5f9;">
+    <td style="padding:15px; font-weight:600;">${data.matiere}</td>
+    <td style="padding:15px; text-align:center; font-weight:700;">${data.absences}</td>
+    <td style="padding:15px; text-align:center;" class="${cls}">${status}</td>
+    </tr>
+    `
+    })
+
+// AUTO NOTIF (أخطر واحدة فقط)
+if(notifications.length>0){
+showNotif(notifications[0],
+notifications[0].includes("Éliminé") ? "dangerbg" : "warning")
+}else{
+showNotif("Aucun problème","success")
+}
+
+// LOAD TEACHERS
+loadTeachers(u.classe);
+
+}
+
+async function loadTeachers(classeName) {
+    const profList = document.getElementById("profList");
+    if(!classeName) return;
+
+    try {
+        const snap = await db.collection("professeur")
+            .where("classes", "array-contains", classeName)
+            .get();
+
+        if(snap.empty) {
+            profList.innerHTML = '<p style="font-size:12px; color:#94a3b8; text-align:center; padding:10px;">Aucun professeur assigné pour le moment.</p>';
+            return;
+        }
+
+        let html = "";
+        snap.forEach(doc => {
+            const p = doc.data();
+            html += `
+                <div style="display:flex; align-items:center; gap:12px; background:#f8fafc; padding:15px; border-radius:15px; border:1px solid #e2e8f0; transition:0.3s; cursor:pointer;" onmouseover="this.style.borderColor='#2563eb'" onmouseout="this.style.borderColor='#e2e8f0'">
+                    <img src="${p.photo || 'https://via.placeholder.com/40'}" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:2px solid white; box-shadow:0 3px 10px rgba(0,0,0,0.05);">
+                    <div style="flex:1;">
+                        <div style="font-weight:700; font-size:13px; color:#0f172a;">Prof. ${p.nom} ${p.prenom || ''}</div>
+                        <div style="font-size:11px; color:#2563eb; font-weight:700;">${p.specialite || p.grade || 'Enseignant'}</div>
+                    </div>
+                </div>
+            `;
+            
+            // Add to dropdown
+            const opt = document.createElement("option");
+            opt.value = p.nom + " " + (p.prenom || "");
+            opt.innerText = "Prof. " + p.nom;
+            document.getElementById("msgRecipient").appendChild(opt);
+        });
+        profList.innerHTML = html;
+    } catch(err) {
+        console.error("Error loading teachers:", err);
+        profList.innerHTML = '<p style="font-size:12px; color:#ef4444; text-align:center; padding:10px;">Erreur lors du chargement des professeurs.</p>';
+    }
+}
+
+// PROFILE EDIT LOGIC
+function openProfileModal(){
+  document.getElementById("editFullname").value = currentUserData.nom + " " + currentUserData.prenom;
+  document.getElementById("editCin").value = currentUserData.cin || "";
+  document.getElementById("editNum").value = currentUserData.numero || "";
+  document.getElementById("editEmail").value = currentUserData.email || "";
+  document.getElementById("editPassword").value = "";
+  document.getElementById("editPhoto").value = currentUserData.photo || "";
+  document.getElementById("profileModal").style.display = "flex";
+}
+
+function closeProfileModal(){
+  document.getElementById("profileModal").style.display = "none";
+}
+
+async function saveProfile(){
+  const user = auth.currentUser;
+  if(!user) return;
+  
+  let newCin = document.getElementById("editCin").value.trim();
+  let newNum = document.getElementById("editNum").value.trim();
+  let newEmail = document.getElementById("editEmail").value.trim();
+  let newPhoto = document.getElementById("editPhoto").value.trim();
+  let newPass = document.getElementById("editPassword").value.trim();
+
+  try {
+    // 1. Update Auth Profile if Email/Password changed
+    if(newEmail !== currentUserData.email){
+      await user.updateEmail(newEmail);
+    }
+    if(newPass.length > 0){
+      await user.updatePassword(newPass);
+    }
+
+    // 2. Update Firestore
+    await db.collection("etd").doc(user.uid).update({
+      numero: newNum,
+      photo: newPhoto,
+      ...(newPass.length > 0 && {password: newPass}) // Update stored password if provided
+    });
+
+    closeProfileModal();
+    showNotif("Profil mis à jour avec succès !", "success");
+    loadData(user); // refresh UI
+
+  } catch (error) {
+    alert("Erreur lors de la mise à jour: " + error.message);
+  }
+}
+
+async function sendReclamation(){
+  let sujet = document.getElementById("contactSujet").value.trim();
+  let msg = document.getElementById("contactMessage").value.trim();
+  let dest = document.getElementById("msgRecipient").value;
+  let fileInput = document.getElementById("msgFile");
+  let btn = document.getElementById("btnSendContact");
+
+  if(!sujet || !msg){
+    alert("Veuillez remplir tous les champs.");
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Envoi...';
+
+  try {
+    let attachment = null;
+    if(fileInput.files.length > 0) {
+      const file = fileInput.files[0];
+      attachment = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve({
+          name: file.name,
+          type: file.type,
+          data: reader.result
+        });
+        reader.readAsDataURL(file);
+      });
+    }
+
+    await db.collection("reclamations").add({
+      senderId: auth.currentUser.uid,
+      senderName: currentUserData.nom + " " + currentUserData.prenom,
+      senderRole: "etudiant",
+      email: currentUserData.email,
+      classe: currentUserData.classe,
+      destinataire: dest,
+      sujet: sujet,
+      message: msg,
+      attachment: attachment,
+      status: "En attente",
+      adminReply: "",
+      date: firebase.firestore.FieldValue.serverTimestamp(),
+      read: false
+    });
+
+    document.getElementById("contactSujet").value = "";
+    document.getElementById("contactMessage").value = "";
+    fileInput.value = "";
+    showNotif("Réclamation envoyée avec succès !", "success");
+
+  } catch(err) {
+    alert("Erreur d'envoi: " + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Envoyer la Réclamation';
+  }
+}
+
+function startReclamationListener(uid) {
+  db.collection("reclamations")
+    .where("senderId", "==", uid)
+    .orderBy("date", "desc")
+    .onSnapshot(snap => {
+      const list = document.getElementById("myReclamationsList");
+      if(snap.empty) {
+        list.innerHTML = '<p style="font-size:12px; color:#94a3b8; text-align:center; padding:10px;">Aucune demande envoyée.</p>';
+        return;
+      }
+
+      let html = "";
+      snap.forEach(doc => {
+        const r = doc.data();
+        let statusColor = "#64748b";
+        let statusBg = "#f1f5f9";
+        
+        if(r.status === "Acceptée") { statusColor = "#10b981"; statusBg = "#d1fae5"; }
+        else if(r.status === "Refusée") { statusColor = "#ef4444"; statusBg = "#fee2e2"; }
+        else if(r.status === "Répondue") { statusColor = "#2563eb"; statusBg = "#dbeafe"; }
+
+        html += `
+          <div style="background:white; padding:15px; border-radius:12px; border:1px solid #e2e8f0; font-size:13px; box-shadow:0 2px 5px rgba(0,0,0,0.02);">
+            <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:8px;">
+              <span style="font-weight:700; color:#0f172a;">${r.sujet}</span>
+              <span style="background:${statusBg}; color:${statusColor}; padding:3px 8px; border-radius:6px; font-size:10px; font-weight:800; text-transform:uppercase;">${r.status}</span>
+            </div>
+            <p style="color:#64748b; margin-bottom:8px; line-height:1.4;">${r.message.substring(0, 80)}${r.message.length > 80 ? '...' : ''}</p>
+            ${r.adminReply ? `<div style="background:#f0f7ff; padding:10px; border-radius:8px; border-left:3px solid #2563eb; margin-top:5px;">
+              <strong style="font-size:11px; color:#2563eb; display:block; margin-bottom:3px;">Réponse Administration:</strong>
+              <span style="color:#1e293b; font-style:italic;">${r.adminReply}</span>
+            </div>` : ''}
+          </div>
+        `;
+      });
+      list.innerHTML = html;
+    }, err => {
+      console.error("Reclamation listener error:", err);
+    });
+}
+
+// REAL-TIME NOTIFICATION LISTENER
+function startNotificationListener(uid) {
+  db.collection("notifications")
+    .where("userId", "==", uid)
+    .where("read", "==", false)
+    .orderBy("date", "desc")
+    .limit(1)
+    .onSnapshot(snap => {
+      if(!snap.empty) {
+        snap.docChanges().forEach(change => {
+          if (change.type === "added") {
+            const notif = change.doc.data();
+            showNotif(notif.text, notif.type === "absence" ? "dangerbg" : "warning");
+            
+            // Mark as read after showing (optional, depending on UX)
+            // change.doc.ref.update({ read: true }); 
+          }
+        });
+      }
+    });
+}
+
+// POPUP
+function showNotif(msg,type){
+let box=document.getElementById("notifBox")
+let text=document.getElementById("notifText")
+
+box.className="notif show "+type
+text.innerText=msg
+
+setTimeout(()=>{
+box.classList.remove("show")
+},4000)
+}
+
+// BUTTON NOTIF
+function manualNotif(){
+
+if(notifications.length===0){
+showNotif("Tout est OK","success")
+return
+}
+
+// عرض الكل
+notifications.forEach((n,i)=>{
+setTimeout(()=>{
+showNotif(n, n.includes("Éliminé") ? "dangerbg":"warning")
+},i*2000)
+})
+
+}
+
+// LOGOUT
+function logout(){
+auth.signOut().then(()=>{
+window.location.href="login.html"
+})
+}
+
+async function loadStudentSchedule(classeName) {
+    if(!classeName) return;
+    const days = ["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
+    const q = firebase.firestore().collection("schedules").where("classe", "==", classeName);
+    
+    q.onSnapshot(snap => {
+        let filteredDocs = snap.docs.filter(d => d.data().isPublished !== false);
+        let grid = document.getElementById("studentSchedule");
+        grid.innerHTML = `<div class="cell header">Heure</div>${days.map(d=>`<div class="cell header">${d}</div>`).join("")}`;
+        
+        let hours = [];
+        filteredDocs.forEach(doc => {
+            let s = doc.data();
+            let h = s.heureDebut + "-" + s.heureFin;
+            if(!hours.includes(h)) hours.push(h);
+        });
+        hours.sort();
+        
+        hours.forEach(h => {
+            grid.innerHTML += `<div class="cell header">${h}</div>`;
+            days.forEach(day => {
+                let content = "";
+                filteredDocs.forEach(doc => {
+                    let s = doc.data();
+                    if((s.heureDebut + "-" + s.heureFin) === h && s.jour === day) {
+                        content += `
+                            <div class="course-card">
+                                <b>${s.matiere}</b>
+                                <span><i class="fa-solid fa-user-tie"></i> ${s.prof}</span>
+                                <span><i class="fa-solid fa-location-dot"></i> ${s.salle}</span>
+                            </div>
+                        `;
+                    }
+                });
+                if(content === "") {
+                    content = `<div class="pose-indicator"><i class="fa-solid fa-mug-hot"></i> Pause</div>`;
+                }
+                grid.innerHTML += `<div class="cell">${content}</div>`;
+            });
+        });
+    });
+}
+
+window.downloadPDF = function() {
+    const element = document.createElement('div');
+    element.style.padding = '40px';
+    element.style.fontFamily = 'Poppins, sans-serif';
+    
+    const header = `
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #0f172a; padding-bottom:20px; margin-bottom:30px;">
+            <div>
+                <h1 style="margin:0; font-size:24px; color:#0f172a; font-weight:800;">ESIP GAFSA</h1>
+                <p style="margin:0; font-size:12px; color:#64748b;">École Supérieure d'Ingénieurs et de Management de Gafsa</p>
+            </div>
+            <div style="text-align:right;">
+                <h2 style="margin:0; font-size:18px; color:#2563eb; font-weight:700;">EMPLOI DU TEMPS</h2>
+                <p style="margin:0; font-size:12px; color:#0f172a; font-weight:600;">Étudiant: ${currentUserData.nom} ${currentUserData.prenom} - <span style="color:#2563eb;">${currentUserData.classe}</span></p>
+            </div>
+        </div>
+    `;
+    
+    const gridClone = document.getElementById('studentSchedule').cloneNode(true);
+    gridClone.style.boxShadow = 'none';
+    gridClone.style.border = '1px solid #e2e8f0';
+    gridClone.style.display = 'grid'; // Ensure it stays a grid in export
+    
+    element.innerHTML = header + gridClone.outerHTML + `
+        <div style="margin-top:40px; text-align:right; font-size:11px; color:#94a3b8;">
+            Document généré le ${new Date().toLocaleDateString()} - Portail ESIP Gafsa
+        </div>
+    `;
+
+    const opt = {
+        margin: 10,
+        filename: `Emploi_${currentUserData.nom}_${currentUserData.classe}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+    };
+
+    html2pdf().set(opt).from(element).save();
+}
+
+</script>
+
+  <div id="google_translate_element" style="display:none;"></div>
+  <script type="text/javascript">
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({ pageLanguage: 'fr', autoDisplay: false }, 'google_translate_element');
+    }
+    window.addEventListener('load', function() {
+      var lang = localStorage.getItem('preferred_lang') || 'fr';
+      var checkTranslate = setInterval(function() {
+        if (lang && lang !== 'fr') {
+          var select = document.querySelector('.goog-te-combo');
+          if (select) {
+            select.value = lang;
+            select.dispatchEvent(new Event('change'));
+            clearInterval(checkTranslate);
+          }
+        } else {
+          clearInterval(checkTranslate);
+        }
+      }, 500);
+      setTimeout(function() { clearInterval(checkTranslate); }, 5000);
+    });
+  </script>
+  <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+  <script src="chatbot.js"></script>
+</body>
+</html>

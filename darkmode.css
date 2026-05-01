@@ -1,0 +1,179 @@
+/* ===================================
+   ESIP PRO MAX - GLOBAL DARK MODE
+   Ultra-optimized for inline styles
+   =================================== */
+
+/* ---- CSS VARIABLES ---- */
+:root {
+    --bg: #f8fafc;
+    --bg-secondary: #f1f5f9;
+    --surface: #ffffff;
+    --surface-alt: #f8fafc;
+    --border: #e2e8f0;
+    --text: #0f172a;
+    --text-muted: #64748b;
+    --text-sub: #94a3b8;
+    --primary: #2563eb;
+    --shadow: 0 4px 20px rgba(0,0,0,0.06);
+    --sidebar-bg: #0f172a;
+}
+
+html.dark, :root[data-theme="dark"] {
+    --bg: #0f172a;
+    --bg-secondary: #020617;
+    --surface: #1e293b;
+    --surface-alt: #334155;
+    --border: #475569;
+    --text: #ffffff;            
+    --text-muted: #f8fafc;      
+    --text-sub: #cbd5e1;
+    --primary: #38bdf8;         
+    --shadow: 0 4px 20px rgba(0,0,0,0.8);
+    --sidebar-bg: #020617;
+}
+
+/* ---- GLOBAL TRANSITIONS ---- */
+*, *::before, *::after {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* ---- BODY & GLOBAL ---- */
+html.dark body {
+    background: var(--bg) !important;
+    background-color: var(--bg) !important;
+    color: var(--text) !important;
+}
+
+/* ---- AGGRESSIVE INLINE STYLE OVERRIDES ---- */
+/* Overrides inline "background: white" which makes text invisible in dark mode */
+html.dark [style*="background: white"],
+html.dark [style*="background:white"],
+html.dark [style*="background: #fff"],
+html.dark [style*="background:#fff"],
+html.dark [style*="background: #ffffff"],
+html.dark [style*="background:#ffffff"],
+html.dark [style*="background: #f8fafc"],
+html.dark [style*="background:#f8fafc"],
+html.dark [style*="background: #f1f5f9"],
+html.dark [style*="background:#f1f5f9"] {
+    background-color: var(--surface) !important;
+    border-color: var(--border) !important;
+    color: var(--text) !important;
+}
+
+/* Overrides inline dark text colors to bright text */
+html.dark [style*="color: #0f172a"],
+html.dark [style*="color:#0f172a"],
+html.dark [style*="color: #1e293b"],
+html.dark [style*="color:#1e293b"],
+html.dark [style*="color: var(--secondary)"],
+html.dark [style*="color:var(--secondary)"] {
+    color: var(--text) !important;
+}
+
+/* Overrides inline muted colors */
+html.dark [style*="color: #64748b"],
+html.dark [style*="color:#64748b"],
+html.dark [style*="color: #475569"],
+html.dark [style*="color:#475569"] {
+    color: #e2e8f0 !important;
+}
+
+/* Overrides inline borders */
+html.dark [style*="border: 1px solid #e2e8f0"],
+html.dark [style*="border:1px solid #e2e8f0"],
+html.dark [style*="border-bottom: 1px solid #f1f5f9"],
+html.dark [style*="border-bottom: 2px solid #e2e8f0"],
+html.dark [style*="border: 2px solid #e2e8f0"] {
+    border-color: var(--border) !important;
+}
+
+/* ---- TEXT ELEMENTS ---- */
+html.dark h1, html.dark h2, html.dark h3, 
+html.dark h4, html.dark h5, html.dark h6 {
+    color: var(--text) !important;
+}
+
+html.dark p, html.dark span:not(.badge):not([class*="badge"]):not([class*="status"]), 
+html.dark div:not([class*="modal"]):not([class*="badge"]), html.dark label,
+html.dark i, html.dark th, html.dark td, html.dark li {
+    color: var(--text);
+}
+
+/* ---- STANDARD CARDS & MODALS ---- */
+html.dark .card,
+html.dark .modal-content,
+html.dark .section-card,
+html.dark .stat-card {
+    background: var(--surface) !important;
+    border-color: var(--border) !important;
+    box-shadow: var(--shadow) !important;
+}
+
+/* ---- TABLES ---- */
+html.dark table {
+    background: var(--surface) !important;
+    border-color: var(--border) !important;
+}
+html.dark table th {
+    background: var(--surface-alt) !important;
+    color: var(--text-muted) !important;
+    border-bottom: 2px solid var(--border) !important;
+}
+html.dark table td {
+    border-color: var(--border) !important;
+    color: var(--text) !important;
+    background: transparent !important;
+}
+html.dark table tr:hover td {
+    background: rgba(88, 166, 255, 0.08) !important;
+}
+
+/* ---- FORM INPUTS ---- */
+html.dark input:not([type="color"]):not([type="checkbox"]):not([type="radio"]), 
+html.dark select, 
+html.dark textarea {
+    background-color: var(--surface-alt) !important;
+    color: var(--text) !important;
+    border: 1px solid var(--border) !important;
+}
+html.dark input:focus, html.dark select:focus, html.dark textarea:focus {
+    border-color: var(--primary) !important;
+    background-color: var(--surface) !important;
+}
+html.dark input::placeholder, html.dark textarea::placeholder {
+    color: var(--text-sub) !important;
+}
+
+/* ---- SIDEBAR & MENUS ---- */
+html.dark .sidebar, html.dark .side-nav {
+    background: var(--sidebar-bg) !important;
+    border-right: 1px solid var(--border) !important;
+}
+html.dark .sidebar a {
+    color: var(--text-muted) !important;
+}
+html.dark .sidebar a:hover, html.dark .sidebar a.active {
+    color: var(--primary) !important;
+    background: rgba(88, 166, 255, 0.1) !important;
+}
+
+/* ---- BADGES & STATUS ---- */
+html.dark .badge:not(.green):not(.red), html.dark .status-pill {
+    filter: brightness(0.9) contrast(1.2);
+}
+
+/* ---- DARK MODE BUTTON TOGGLE FOCUS ---- */
+.dark-toggle-btn {
+    background: rgba(255,255,255,0.1);
+    border: none; color: white; width: 38px; height: 38px;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: 0.3s;
+}
+.dark-toggle-btn:hover { background: var(--primary); transform: rotate(15deg); }
+html.dark .dark-toggle-btn { background: rgba(255,255,255,0.15); }
+
+/* ---- SCROLLBAR ---- */
+html.dark ::-webkit-scrollbar-track { background: var(--bg-secondary); }
+html.dark ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+html.dark ::-webkit-scrollbar-thumb:hover { background: var(--text-sub); }

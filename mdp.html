@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>ESIP Gafsa – Mot de passe oublié</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<style>
+:root {
+    --primary: #2563eb;
+    --secondary: #0f172a;
+    --light: #f1f5f9;
+    --border: #e2e8f0;
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Poppins',sans-serif;
+}
+body{
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background: var(--light);
+}
+
+.login-card {
+    background:white;
+    padding:40px;
+    border-radius:25px;
+    box-shadow:0 15px 35px rgba(15, 23, 42, 0.08);
+    width:400px;
+    text-align:center;
+    border: 1px solid var(--border);
+}
+
+h2 { color:var(--secondary); margin-bottom:20px; font-weight: 800; font-size: 24px; }
+h2 span { color: var(--primary); }
+
+p { color:#64748b; font-size: 14px; margin-bottom: 25px; line-height: 1.6; }
+
+input {
+    width:100%;
+    padding:14px;
+    margin-bottom:15px;
+    border-radius:12px;
+    border:1px solid var(--border);
+    outline:none;
+    transition:0.3s;
+    background: #f8fafc;
+}
+
+input:focus { border-color:var(--primary); background: white; }
+
+button {
+    width:100%;
+    padding:14px;
+    background:var(--primary);
+    color:white;
+    border:none;
+    border-radius:12px;
+    font-weight:700;
+    cursor:pointer;
+    transition:0.3s;
+    box-shadow: 0 4px 12px rgba(37,99,235,0.2);
+}
+
+button:hover { background:#1d4ed8; transform:translateY(-2px); }
+
+.back { margin-top:20px; color:#64748b; font-size:14px; cursor:pointer; text-decoration: none; display: block; }
+.back:hover { color: var(--primary); }
+
+#msg { margin-top: 15px; font-size: 13px; color: #10b981; display: none; }
+</style>
+</head>
+
+<body>
+
+<div class="login-card">
+    <h2>ESIP<span>.Recall</span></h2>
+    <p>Entrez votre adresse email institutionnelle pour recevoir un lien de réinitialisation.</p>
+
+    <input type="email" id="email" placeholder="votre@email.com" required>
+    
+    <button onclick="sendReset()"><i class="fa-solid fa-paper-plane" style="margin-right:8px"></i> Réinitialiser</button>
+
+    <div id="msg">Un lien a été envoyé à votre adresse email.</div>
+
+    <a href="login.html" class="back"><i class="fa-solid fa-arrow-left" style="margin-right:5px"></i> Retour à la connexion</a>
+</div>
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script type="text/javascript">
+   (function(){
+      emailjs.init({
+        publicKey: "89VgfdkHUrxYc1zoK",
+      });
+   })();
+
+window.sendReset = () => {
+    const email = document.getElementById("email").value;
+    if(!email) return alert("Veuillez entrer une adresse email.");
+
+    const btn = document.querySelector('button');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:8px"></i> Envoi...';
+    btn.disabled = true;
+
+    emailjs.send("service_kt5zi5k", "template_qrg9zr6", {
+        to_email: email,
+        email: email,
+        user_email: email
+    })
+    .then(() => {
+        document.getElementById("msg").style.display = "block";
+        document.getElementById("msg").innerText = "Un email a été envoyé avec succès.";
+        document.getElementById("msg").style.color = "#10b981";
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    })
+    .catch((error) => {
+        document.getElementById("msg").style.display = "block";
+        document.getElementById("msg").innerText = "Erreur d'envoi. Vérifiez la configuration EmailJS.";
+        document.getElementById("msg").style.color = "#ef4444";
+        console.error("EmailJS error:", error);
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    });
+}
+</script>
+
+</body>
+</html>

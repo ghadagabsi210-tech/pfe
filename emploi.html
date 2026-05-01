@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestion des Emplois du Temps - ESIP</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #0f172a;
+            --slate: #475569;
+            --light: #f8fafc;
+            --border: #e2e8f0;
+            --white: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+
+        body {
+            background: var(--light);
+            color: var(--secondary);
+            padding: 30px;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto 30px auto;
+        }
+
+        .btn-back {
+            background: var(--secondary);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: 0.3s;
+        }
+        .btn-back:hover { transform: translateX(-5px); background: #000; }
+
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 30px;
+        }
+
+        .form-card {
+            background: var(--white);
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(15, 23, 42, 0.05);
+            height: fit-content;
+            position: sticky;
+            top: 30px;
+        }
+
+        .form-card h2 { font-size: 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; color: var(--primary); }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 700; color: var(--slate); margin-bottom: 5px; }
+        .form-group select, .form-group input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            font-size: 14px;
+            outline: none;
+            transition: 0.3s;
+        }
+        .form-group select:focus, .form-group input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+
+        .btn-save {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            background: var(--primary);
+            color: white;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+        .btn-save:hover { background: #1d4ed8; transform: translateY(-2px); }
+
+        .schedule-display {
+            background: var(--white);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(15, 23, 42, 0.05);
+        }
+
+        .grid-planning {
+            display: grid;
+            grid-template-columns: 100px repeat(6, 1fr);
+            margin-top: 20px;
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .cell {
+            border: 0.5px solid var(--border);
+            padding: 10px;
+            min-height: 100px;
+            font-size: 11px;
+            background: white;
+        }
+
+        .header-cell {
+            background: var(--secondary);
+            color: white;
+            text-align: center;
+            font-weight: 700;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .course-item {
+            background: #eff6ff;
+            border-left: 4px solid var(--primary);
+            padding: 8px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        .course-item b { display: block; color: var(--secondary); font-size: 12px; margin-bottom: 4px; }
+        .course-item span { font-size: 10px; color: var(--slate); display: block; }
+
+        .course-actions {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            display: flex;
+            gap: 5px;
+            opacity: 0;
+            transition: 0.3s;
+        }
+        .course-item:hover .course-actions { opacity: 1; }
+
+        .action-btn {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 10px;
+            color: white;
+        }
+        .btn-edit { background: var(--primary); }
+        .btn-delete { background: #ef4444; }
+
+        .pose-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #94a3b8;
+            font-size: 10px;
+            font-weight: 600;
+            opacity: 0.6;
+        }
+        .pose-item i { font-size: 16px; margin-bottom: 5px; }
+
+    </style>
+</head>
+<body>
+
+    <div class="header-top">
+        <a href="admin.html" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Dashboard Admin</a>
+        <h1 style="font-weight: 800;">📅 Gestion des <span style="color:var(--primary);">Emplois</span></h1>
+    </div>
+
+    <div class="main-container">
+        
+        <!-- SIDEFORM -->
+        <div class="form-card">
+            <h2 id="formTitle"><i class="fa-solid fa-plus-circle"></i> Ajouter un Cours</h2>
+            
+            <div class="form-group">
+                <label>Type d'Emploi</label>
+                <select id="roleType" onchange="switchRole()">
+                    <option value="etudiant">Étudiants (Par Classe)</option>
+                    <option value="prof">Professeurs (Individuel)</option>
+                    <option value="employe">Employés (Individuel)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label id="targetLabel">Classe</label>
+                <select id="targetSelect" onchange="loadSchedule()"></select>
+            </div>
+
+            <div class="form-group">
+                <label>Matière / Service</label>
+                <input type="text" id="matiere" placeholder="Ex: Algorithmique">
+            </div>
+
+            <div class="form-group">
+                <label>Jour</label>
+                <select id="jour">
+                    <option>Lundi</option><option>Mardi</option><option>Mercredi</option>
+                    <option>Jeudi</option><option>Vendredi</option><option>Samedi</option>
+                </select>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <div class="form-group">
+                    <label>Début</label>
+                    <input type="time" id="hd">
+                </div>
+                <div class="form-group">
+                    <label>Fin</label>
+                    <input type="time" id="hf">
+                </div>
+            </div>
+
+            <div class="form-group" id="profField">
+                <label>Professeur</label>
+                <select id="profName"></select>
+            </div>
+
+            <div class="form-group">
+                <label>Salle / Bureau</label>
+                <input type="text" id="salle" placeholder="Ex: Salle 102">
+            </div>
+
+            <input type="hidden" id="editId">
+            <button class="btn-save" id="saveBtn" onclick="saveCourse()">Enregistrer en Brouillon</button>
+            <button id="cancelEdit" style="display:none; width:100%; margin-top:10px; background:var(--border); border:none; padding:10px; border-radius:10px; cursor:pointer;" onclick="resetForm()">Annuler</button>
+            <hr style="margin:20px 0; border:none; border-top:1px solid var(--border);">
+            <button id="publishBtn" onclick="publishSchedule()" style="width:100%; padding:15px; border:none; border-radius:12px; background:#10b981; color:white; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; transition:0.33s;">
+                <i class="fa-solid fa-paper-plane"></i> Publier l'Emploi
+            </button>
+            <p style="font-size:10px; color:var(--slate); text-align:center; margin-top:10px;">En publiant, cet emploi deviendra visible par tous les étudiants/profs concernés.</p>
+        </div>
+
+        <!-- GRID DISPLAY -->
+        <div class="schedule-display">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h2 id="viewTitle" style="font-weight: 800; color: var(--secondary);">Planning: INFO1</h2>
+                <button onclick="window.print()" style="padding:10px 20px; border-radius:10px; border:1px solid var(--border); background:white; cursor:pointer; font-weight:700;"><i class="fa-solid fa-print"></i> Imprimer</button>
+            </div>
+            
+            <div class="grid-planning" id="grid">
+                <!-- JS Generated -->
+            </div>
+
+            <!-- CLASS GROUPS CONFIGURATION (NEW) -->
+            <hr style="margin:40px 0; border:none; border-top:2px solid var(--border);">
+            <div id="groupConfig" style="background:#f8fafc; padding:25px; border-radius:20px; border:1px solid var(--border);">
+                <h3 style="font-size:18px; font-weight:800; margin-bottom:15px; display:flex; align-items:center; gap:10px;"><i class="fa-solid fa-layer-group" style="color:var(--primary);"></i> Division des Classes (Groupes)</h3>
+                <p style="font-size:12px; color:var(--slate); margin-bottom:20px;">Créez des sous-groupes (Section A, B, etc.) pour chaque classe afin de diviser l'emploi du temps.</p>
+                
+                <div style="display:flex; gap:10px; margin-bottom:20px;">
+                    <select id="mainClassSelect" style="flex:1; padding:12px; border-radius:10px; border:1px solid var(--border);">
+                        <option value="INFO1">INFO1</option><option value="INFO2">INFO2</option><option value="INFO3">INFO3</option>
+                        <option value="ENG1">ENG1</option><option value="ENG2">ENG2</option><option value="GESTION1">GESTION1</option>
+                    </select>
+                    <input type="text" id="newGroupName" placeholder="Ex: Groupe A" style="flex:1; padding:12px; border-radius:10px; border:1px solid var(--border);">
+                    <button onclick="addGroup()" style="padding:10px 20px; border:none; border-radius:10px; background:var(--primary); color:white; font-weight:700; cursor:pointer;"><i class="fa-solid fa-plus"></i> Diviser</button>
+                </div>
+
+                <div id="groupsList" style="display:flex; flex-wrap:wrap; gap:10px;">
+                    <!-- JS Generated -->
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, where, doc, updateDoc, deleteDoc, getDocs, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD56AbWLar8R7qe4x__3a8dfZop6A1jew0",
+            authDomain: "pfe2026-2cd50.firebaseapp.com",
+            projectId: "pfe2026-2cd50"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const days = ["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
+        let professors = [];
+        let employees = [];
+        let classGroups = [];
+
+        // 1. Initial Load
+        async function init() {
+            // Fetch Professors
+            const profSnap = await getDocs(collection(db, "professeur"));
+            professors = profSnap.docs.map(d => ({id: d.id, ...d.data()}));
+
+            // Fetch Employees
+            const empSnap = await getDocs(collection(db, "employes"));
+            employees = empSnap.docs.map(d => ({id: d.id, ...d.data()}));
+
+            // Listen to Groups
+            onSnapshot(collection(db, "class_groups"), (snap) => {
+                classGroups = snap.docs.map(d => ({id: d.id, ...d.data()}));
+                renderGroups();
+                switchRole();
+            });
+        }
+
+        window.renderGroups = () => {
+            const list = document.getElementById("groupsList");
+            list.innerHTML = "";
+            classGroups.forEach(g => {
+                list.innerHTML += `
+                    <div style="background:white; padding:8px 15px; border-radius:10px; border:1px solid var(--border); display:flex; align-items:center; gap:10px; font-size:12px; font-weight:700;">
+                        <span style="color:var(--primary)">${g.mainClass}</span> - ${g.name}
+                        <i class="fa-solid fa-times" style="cursor:pointer; color:#ef4444;" onclick="deleteGroup('${g.id}')"></i>
+                    </div>
+                `;
+            });
+        }
+
+        window.addGroup = async () => {
+            const mainClass = document.getElementById("mainClassSelect").value;
+            const name = document.getElementById("newGroupName").value.trim();
+            if(!name) return;
+
+            await addDoc(collection(db, "class_groups"), { mainClass, name });
+            document.getElementById("newGroupName").value = "";
+        }
+
+        window.deleteGroup = async (id) => {
+            if(confirm("Supprimer ce groupe ?")) await deleteDoc(doc(db, "class_groups", id));
+        }
+
+        window.switchRole = () => {
+            const type = document.getElementById("roleType").value;
+            const target = document.getElementById("targetSelect");
+            const label = document.getElementById("targetLabel");
+            const pField = document.getElementById("profField");
+            const profSelect = document.getElementById("profName");
+
+            target.innerHTML = "";
+            
+            if(type === "etudiant") {
+                label.innerText = "Classe / Groupe";
+                pField.style.display = "block";
+                
+                // Base classes
+                const baseClasses = ["INFO1", "INFO2", "INFO3", "ENG1", "ENG2", "GESTION1"];
+                baseClasses.forEach(c => target.innerHTML += `<option value="${c}">${c} (Tout le monde)</option>`);
+                
+                // Groups
+                classGroups.forEach(g => {
+                    target.innerHTML += `<option value="${g.mainClass}-${g.name}">${g.mainClass} - ${g.name}</option>`;
+                });
+
+                // Populate Prof Select within form if needed (optional optimization)
+                if(profSelect) {
+                    profSelect.innerHTML = '<option value="">Choisir un Professeur</option>';
+                    professors.forEach(p => {
+                        profSelect.innerHTML += `<option value="${p.nom} ${p.prenom}">${p.nom} ${p.prenom} (${p.specialite || 'Prof'})</option>`;
+                    });
+                }
+            } else if(type === "prof") {
+                label.innerText = "Professeur";
+                pField.style.display = "none";
+                professors.forEach(u => {
+                    target.innerHTML += `<option value="${u.nom + ' ' + (u.prenom || '')}">${u.nom} ${u.prenom || ''}</option>`;
+                });
+            } else {
+                label.innerText = "Employé";
+                pField.style.display = "none";
+                employees.forEach(u => {
+                    target.innerHTML += `<option value="${u.nom + ' ' + (u.prenom || '')}">${u.nom} ${u.prenom || ''}</option>`;
+                });
+            }
+            loadSchedule();
+        }
+
+        window.loadSchedule = () => {
+            const type = roleType.value;
+            const target = targetSelect.value;
+            if(!target) return;
+
+            viewTitle.innerText = "Planning: " + target;
+            
+            let q;
+            if(type === "etudiant") q = query(collection(db, "schedules"), where("classe", "==", target));
+            else if(type === "prof") q = query(collection(db, "schedules"), where("prof", "==", target));
+            else q = query(collection(db, "schedules"), where("employe", "==", target));
+
+            onSnapshot(q, (snap) => {
+                const grid = document.getElementById("grid");
+                grid.innerHTML = `<div class="cell header-cell">Heure</div>${days.map(d => `<div class="cell header-cell">${d}</div>`).join("")}`;
+
+                let hours = [];
+                snap.forEach(d => {
+                    let s = d.data();
+                    let h = s.heureDebut + "-" + s.heureFin;
+                    if(!hours.includes(h)) hours.push(h);
+                });
+                hours.sort();
+
+                hours.forEach(h => {
+                    grid.innerHTML += `<div class="cell header-cell" style="background:#f1f5f9; color:var(--secondary); font-size:10px;">${h}</div>`;
+                    days.forEach(day => {
+                        let content = "";
+                        snap.forEach(d => {
+                            let s = d.data();
+                            if(s.heureDebut + "-" + s.heureFin === h && s.jour === day) {
+                                content += `
+                                    <div class="course-item" style="${s.isPublished ? '' : 'border-left-color:#f59e0b; background:#fffcf0;'}">
+                                        <div class="course-actions">
+                                            <div class="action-btn btn-edit" onclick="editCourse('${d.id}', '${s.matiere}', '${s.jour}', '${s.heureDebut}', '${s.heureFin}', '${s.prof || ''}', '${s.salle}', '${s.employe || ''}')"><i class="fa-solid fa-pen"></i></div>
+                                            <div class="action-btn btn-delete" onclick="deleteCourse('${d.id}')"><i class="fa-solid fa-trash"></i></div>
+                                        </div>
+                                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                            <b>${s.matiere}</b>
+                                            <span style="font-size:8px; font-weight:800; padding:2px 5px; border-radius:4px; background:${s.isPublished ? '#d1fae5; color:#065f46;' : '#fef3c7; color:#92400e;'}">
+                                                ${s.isPublished ? 'PUBLIÉ' : 'BROUILLON'}
+                                            </span>
+                                        </div>
+                                        <span>📍 ${s.salle}</span>
+                                        ${type === "etudiant" ? `<span>👤 ${s.prof}</span>` : ""}
+                                    </div>
+                                `;
+                            }
+                        });
+                        if(content === "") {
+                            content = `<div class="pose-item"><i class="fa-solid fa-mug-hot"></i> Pause / Libre</div>`;
+                        }
+                        grid.innerHTML += `<div class="cell">${content}</div>`;
+                    });
+                });
+            });
+        }
+
+        window.saveCourse = async () => {
+            const mt = matiere.value.trim();
+            const jr = jour.value;
+            const h_d = hd.value;
+            const h_f = hf.value;
+            const sl = salle.value.trim();
+            const type = roleType.value;
+            const target = targetSelect.value;
+            const pName = profName.value.trim();
+            const id = editId.value;
+
+            if(!mt || !h_d || !h_f) { alert("Veuillez remplir les champs obligatoires"); return; }
+
+            const data = {
+                matiere: mt,
+                jour: jr,
+                heureDebut: h_d,
+                heureFin: h_f,
+                salle: sl,
+                lastUpdate: new Date(),
+                isPublished: false // New entries are always draft
+            };
+
+            if(type === "etudiant") { data.classe = target; data.prof = pName; }
+            else if(type === "prof") { data.prof = target; }
+            else { data.employe = target; }
+
+            try {
+                if(id) {
+                    await updateDoc(doc(db, "schedules", id), data);
+                    await updateDoc(doc(db, "emploi", id), data); 
+                    alert("Cours modifié !");
+                } else {
+                    const docRef = await addDoc(collection(db, "schedules"), data);
+                    // Use the same ID for 'emploi' to keep them synced
+                    await setDoc(doc(db, "emploi", docRef.id), data);
+                    alert("Cours ajouté !");
+                }
+                resetForm();
+            } catch(e) { alert(e.message); }
+        }
+
+        window.editCourse = (id, mt, jr, h_d, h_f, p, sl, emp) => {
+            editId.value = id;
+            matiere.value = mt;
+            jour.value = jr;
+            hd.value = h_d;
+            hf.value = h_f;
+            profName.value = p;
+            salle.value = sl;
+            
+            formTitle.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Modifier le Cours';
+            saveBtn.innerText = "Mettre à jour";
+            document.getElementById("cancelEdit").style.display = "block";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        window.deleteCourse = async (id) => {
+            if(confirm("Supprimer ce cours ?")) {
+                await deleteDoc(doc(db, "schedules", id));
+                await deleteDoc(doc(db, "emploi", id));
+            }
+        }
+
+        window.resetForm = () => {
+            editId.value = "";
+            matiere.value = "";
+            hd.value = "";
+            hf.value = "";
+            profName.value = "";
+            salle.value = "";
+            formTitle.innerHTML = '<i class="fa-solid fa-plus-circle"></i> Ajouter un Cours';
+            saveBtn.innerText = "Enregistrer en Brouillon";
+            document.getElementById("cancelEdit").style.display = "none";
+        }
+
+        window.publishSchedule = async () => {
+            const type = roleType.value;
+            const target = targetSelect.value;
+            if(!target) return;
+
+            if(!confirm(`Voulez-vous publier l'emploi de ${target} ? Il deviendra visible par tous.`)) return;
+
+            let q;
+            if(type === "etudiant") q = query(collection(db, "schedules"), where("classe", "==", target));
+            else if(type === "prof") q = query(collection(db, "schedules"), where("prof", "==", target));
+            else q = query(collection(db, "schedules"), where("employe", "==", target));
+
+            const snap = await getDocs(q);
+            const batch = [];
+            snap.forEach(d => {
+                if(!d.data().isPublished) {
+                    batch.push(updateDoc(doc(db, "schedules", d.id), { isPublished: true }));
+                    batch.push(updateDoc(doc(db, "emploi", d.id), { isPublished: true }));
+                }
+            });
+
+            await Promise.all(batch);
+            alert("Emploi publié avec succès ! 🚀");
+        }
+
+        init();
+    </script>
+</body>
+</html>

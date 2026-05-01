@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>ESIP - Auto-Import Students</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; background: #f1f5f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; max-width: 500px; width: 90%; }
+        #progress { margin-top: 20px; font-weight: 700; color: #2563eb; font-size: 24px; }
+        #log { margin-top: 20px; text-align: left; font-size: 11px; height: 200px; overflow-y: auto; background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h1>Auto-Import en cours...</h1>
+    <div id="progress">0%</div>
+    <div id="log">Initialisation...</div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey:"AIzaSyD56AbWLar8R7qe4x__3a8dfZop6A1jew0",
+        authDomain:"pfe2026-2cd50.firebaseapp.com",
+        projectId:"pfe2026-2cd50",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const log = document.getElementById('log');
+    const b = (msg) => {
+        const d = document.createElement('div');
+        d.innerText = msg;
+        log.appendChild(d);
+        log.scrollTop = log.scrollHeight;
+    };
+
+    const img1 = "file:///C:/Users/LENOVO/.gemini/antigravity/brain/6547c900-4981-40b2-8d61-8bbedc3911b3/student_avatar_1_1776254269912.png";
+    const img2 = "file:///C:/Users/LENOVO/.gemini/antigravity/brain/6547c900-4981-40b2-8d61-8bbedc3911b3/student_avatar_2_1776254467509.png";
+
+    const students = [
+        {"nom":"Abidi","prenom":"Ahmed","email":"ahmed.abidi.1@esip.tn","cin":"11223344","tel":"22111111","classe":"INFO1","p":"pass1234","img":img1},
+        {"nom":"Belhaj","prenom":"Sami","email":"sami.belhaj.2@esip.tn","cin":"22334455","tel":"22111112","classe":"INFO2","p":"pass1234","img":img1},
+        {"nom":"Chabane","prenom":"Ines","email":"ines.chabane.3@esip.tn","cin":"33445566","tel":"22111113","classe":"INFO3","p":"pass1234","img":img2},
+        {"nom":"Dridi","prenom":"Omar","email":"omar.dridi.4@esip.tn","cin":"44556677","tel":"22111114","classe":"ENG1","p":"pass1234","img":img1},
+        {"nom":"Elloumi","prenom":"Sarra","email":"sarra.elloumi.5@esip.tn","cin":"55667788","tel":"22111115","classe":"ENG2","p":"pass1234","img":img2},
+        {"nom":"Fakhfakh","prenom":"Mehdi","email":"mehdi.fakhfakh.6@esip.tn","cin":"66778899","tel":"22111116","classe":"GESTION1","p":"pass1234","img":img1},
+        {"nom":"Ghrab","prenom":"Lina","email":"lina.ghrab.7@esip.tn","cin":"77889900","tel":"22111117","classe":"INFO1","p":"pass1234","img":img2},
+        {"nom":"Hammami","prenom":"Youssef","email":"youssef.hammami.8@esip.tn","cin":"88990011","tel":"22111118","classe":"INFO2","p":"pass1234","img":img1},
+        {"nom":"Idoudi","prenom":"Amal","email":"amal.idoudi.9@esip.tn","cin":"99001122","tel":"22111119","classe":"INFO3","p":"pass1234","img":img2},
+        {"nom":"Jridi","prenom":"Bassem","email":"bassem.jridi.10@esip.tn","cin":"10112233","tel":"22111120","classe":"ENG1","p":"pass1234","img":img1},
+        {"nom":"Kammoun","prenom":"Mouna","email":"mouna.kammoun.11@esip.tn","cin":"11223344","tel":"22111121","classe":"ENG2","p":"pass1234","img":img2},
+        {"nom":"Ladjimi","prenom":"Karim","email":"karim.ladjimi.12@esip.tn","cin":"12334455","tel":"22111122","classe":"GESTION1","p":"pass1234","img":img1},
+        {"nom":"Masmoudi","prenom":"Rania","email":"rania.masmoudi.13@esip.tn","cin":"13445566","tel":"22111123","classe":"INFO1","p":"pass1234","img":img2},
+        {"nom":"Neffati","prenom":"Wajdi","email":"wajdi.neffati.14@esip.tn","cin":"14556677","tel":"22111124","classe":"INFO2","p":"pass1234","img":img1},
+        {"nom":"Ouali","prenom":"Nour","email":"nour.ouali.15@esip.tn","cin":"15667788","tel":"22111125","classe":"INFO3","p":"pass1234","img":img2},
+        {"nom":"Rekik","prenom":"Faten","email":"faten.rekik.16@esip.tn","cin":"16778899","tel":"22111126","classe":"ENG1","p":"pass1234","img":img2},
+        {"nom":"Saidi","prenom":"Hamza","email":"hamza.saidi.17@esip.tn","cin":"17889900","tel":"22111127","classe":"ENG2","p":"pass1234","img":img1},
+        {"nom":"Trabelsi","prenom":"Sonia","email":"sonia.trabelsi.18@esip.tn","cin":"18990011","tel":"22111128","classe":"GESTION1","p":"pass1234","img":img2},
+        {"nom":"Zouari","prenom":"Farah","email":"farah.zouari.19@esip.tn","cin":"19001122","tel":"22111129","classe":"INFO1","p":"pass1234","img":img2},
+        {"nom":"Baccar","prenom":"Anis","email":"anis.baccar.20@esip.tn","cin":"20112233","tel":"22111130","classe":"INFO2","p":"pass1234","img":img1},
+        {"nom":"Chaibi","prenom":"Hiba","email":"hiba.chaibi.21@esip.tn","cin":"21223344","tel":"22111131","classe":"INFO3","p":"pass1234","img":img2},
+        {"nom":"Dali","prenom":"Zied","email":"zied.dali.22@esip.tn","cin":"22334455","tel":"22111132","classe":"ENG1","p":"pass1234","img":img1},
+        {"nom":"Essoussi","prenom":"Meriem","email":"meriem.essoussi.23@esip.tn","cin":"23445566","tel":"22111133","classe":"ENG2","p":"pass1234","img":img2},
+        {"nom":"Fekih","prenom":"Skander","email":"skander.fekih.24@esip.tn","cin":"24556677","tel":"22111134","classe":"GESTION1","p":"pass1234","img":img1},
+        {"nom":"Gammoudi","prenom":"Olfa","email":"olfa.gammoudi.25@esip.tn","cin":"25667788","tel":"22111135","classe":"INFO1","p":"pass1234","img":img2},
+        {"nom":"Hanchi","prenom":"Raouf","email":"raouf.hanchi.26@esip.tn","cin":"26778899","tel":"22111136","classe":"INFO2","p":"pass1234","img":img1},
+        {"nom":"Issaoui","prenom":"Khaled","email":"khaled.issaoui.27@esip.tn","cin":"27889900","tel":"22111137","classe":"INFO3","p":"pass1234","img":img1},
+        {"nom":"Jamoussi","prenom":"Emna","email":"emna.jamoussi.28@esip.tn","cin":"28990011","tel":"22111138","classe":"ENG1","p":"pass1234","img":img2},
+        {"nom":"Kchaou","prenom":"Rami","email":"rami.kchaou.29@esip.tn","cin":"29001122","tel":"22111139","classe":"ENG2","p":"pass1234","img":img1},
+        {"nom":"Loukil","prenom":"Nada","email":"nada.loukil.30@esip.tn","cin":"30112233","tel":"22111140","classe":"GESTION1","p":"pass1234","img":img2},
+        {"nom":"Mbarek","prenom":"Walid","email":"walid.mbarek.31@esip.tn","cin":"31223344","tel":"22111141","classe":"INFO1","p":"pass1234","img":img1},
+        {"nom":"Nouira","prenom":"Alya","email":"alya.nouira.32@esip.tn","cin":"32334455","tel":"22111142","classe":"INFO2","p":"pass1234","img":img2},
+        {"nom":"Osman","prenom":"Tarek","email":"tarek.osman.33@esip.tn","cin":"33445566","tel":"22111143","classe":"INFO3","p":"pass1234","img":img1},
+        {"nom":"Rezgui","prenom":"Yasmine","email":"yasmine.rezgui.34@esip.tn","cin":"34556677","tel":"22111144","classe":"ENG1","p":"pass1234","img":img2},
+        {"nom":"Souissi","prenom":"Ilyes","email":"ilyes.souissi.35@esip.tn","cin":"35667788","tel":"22111145","classe":"ENG2","p":"pass1234","img":img1},
+        {"nom":"Toumi","prenom":"Leila","email":"leila.toumi.36@esip.tn","cin":"36778899","tel":"22111146","classe":"GESTION1","p":"pass1234","img":img2},
+        {"nom":"Yahyaoui","prenom":"Adel","email":"adel.yahyaoui.37@esip.tn","cin":"37889900","tel":"22111147","classe":"INFO1","p":"pass1234","img":img1},
+        {"nom":"Zghal","prenom":"Rim","email":"rim.zghal.38@esip.tn","cin":"38990011","tel":"22111148","classe":"INFO2","p":"pass1234","img":img2},
+        {"nom":"Ayadi","prenom":"Sami","email":"sami.ayadi.39@esip.tn","cin":"39001122","tel":"22111149","classe":"INFO3","p":"pass1234","img":img1},
+        {"nom":"Ben amor","prenom":"Nour","email":"nour.benamor.40@esip.tn","cin":"40112233","tel":"22111150","classe":"ENG1","p":"pass1234","img":img2}
+    ];
+
+    async function run(){
+        let i = 0;
+        for(const s of students){
+            const docId = "student_auto_" + i;
+            await setDoc(doc(db, "etd", docId), {
+                nom: s.nom,
+                prenom: s.prenom,
+                email: s.email,
+                cin: s.cin,
+                tel: s.tel,
+                classe: s.classe,
+                role: "etudiant",
+                password: s.p,
+                photo: s.img
+            });
+            i++;
+            const p = Math.round((i / students.length) * 100);
+            document.getElementById('progress').innerText = p + "%";
+            b(`[OK] ${s.nom} ${s.prenom} importé.`);
+        }
+        b("✅ Terminé ! TOUT EST PRÊT.");
+        document.getElementById('progress').innerText = "DONE!";
+        document.body.style.background = "#dcfce7";
+    }
+
+    setTimeout(run, 1000);
+</script>
+
+</body>
+</html>

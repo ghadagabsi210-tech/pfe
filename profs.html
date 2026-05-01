@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Espace Enseignant Premium - ESIP</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="darkmode.css">
+    <script src="darkmode.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <style>
+        :root {
+            --navy: #0f172a;
+            --blue: #2563eb;
+            --slate: #f8fafc;
+            --border: #e2e8f0;
+            --text-dark: #1e293b;
+            --text-light: #64748b;
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; font-family: 'Poppins', sans-serif; }
+        body { background: var(--slate); color: var(--text-dark); }
+
+        /* HEADER */
+        .top-bar {
+            background: var(--navy);
+            color: white;
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .logo { font-size: 22px; font-weight: 800; display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .logo i { color: var(--blue); }
+        
+        .top-actions { display: flex; align-items: center; gap: 20px; }
+        .notif-btn { position: relative; cursor: pointer; font-size: 20px; }
+        .notif-badge { position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 11px; display: flex; align-items: center; justify-content: center; font-weight: 800; border: 2px solid var(--navy); }
+        .logout-btn { background: rgba(255,255,255,0.1); border: none; color: white; padding: 8px 15px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.3s; }
+        .logout-btn:hover { background: #ef4444; }
+
+        /* LAYOUT */
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 30px;
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        /* SIDEBAR (PROFILE) */
+        .sidebar-card {
+            background: white;
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(15,23,42,0.03);
+            border: 1px solid var(--border);
+            height: fit-content;
+        }
+        .profile-header { text-align: center; margin-bottom: 30px; }
+        .prof-avatar { width: 130px; height: 130px; border-radius: 50%; object-fit: cover; border: 4px solid var(--blue); padding: 5px; background: white; margin-bottom: 15px; display: inline-block; }
+        .prof-name { font-size: 20px; font-weight: 800; color: var(--navy); margin-bottom: 5px; }
+        .prof-grade { background: #eff6ff; color: var(--blue); padding: 5px 15px; border-radius: 20px; font-size: 13px; font-weight: 700; }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 12px; color: var(--text-light); font-weight: 700; margin-bottom: 5px; text-transform: uppercase; }
+        .form-group input { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px; outline: none; transition: 0.3s; color: var(--navy); font-weight: 500; }
+        .form-group input:focus { border-color: var(--blue); box-shadow: 0 0 0 4px rgba(37,99,235,0.1); }
+        .form-group input:disabled { background: #f1f5f9; color: var(--text-light); cursor: not-allowed; border-color: transparent; }
+
+        .btn-update { background: var(--navy); color: white; border: none; width: 100%; padding: 14px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        .btn-update:hover { background: var(--blue); transform: translateY(-2px); box-shadow: 0 8px 15px rgba(37,99,235,0.2); }
+
+        /* MAIN CONTENT */
+        .main-content { display: flex; flex-direction: column; gap: 30px; }
+        
+        .section-card {
+            background: white;
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(15,23,42,0.03);
+            border: 1px solid var(--border);
+        }
+        .section-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid var(--slate); padding-bottom: 15px; }
+        .section-title h3 { font-size: 18px; font-weight: 800; color: var(--navy); display: flex; align-items: center; gap: 10px; }
+        .section-title h3 i { color: var(--blue); }
+
+        /* ABSENCES TABLE */
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 12px; font-size: 13px; color: var(--text-light); border-bottom: 2px solid var(--slate); font-weight: 700; text-transform: uppercase; }
+        td { padding: 15px 12px; font-size: 14px; border-bottom: 1px solid var(--slate); }
+        .status-tag { padding: 5px 10px; border-radius: 8px; font-weight: 700; font-size: 12px; }
+        .status-present { background: #dcfce7; color: #166534; }
+        .status-absent { background: #fee2e2; color: #991b1b; }
+
+        /* GRID PLANNING (EMPLOI) */
+        .grid-planning {
+            display: grid;
+            grid-template-columns: 100px repeat(6, 1fr);
+            gap: 0;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .cell { 
+            border: 0.5px solid #e2e8f0; 
+            padding: 12px; 
+            min-height: 100px; 
+            font-size: 11px; 
+            background: white;
+        }
+
+        .cell.header { 
+            background: var(--navy); 
+            color: white; 
+            font-weight: 700; 
+            text-align: center; 
+            min-height: 45px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 13px; 
+        }
+        .course-card { background: #eff6ff; color: #1e40af; padding: 8px; border-radius: 8px; border-left: 4px solid var(--blue); margin-top: 5px; font-size: 10px; }
+        .course-card b { display: block; color: var(--secondary); margin-bottom: 5px; font-size: 11px; }
+        .course-card span { font-size: 10px; color: var(--text-light); display: flex; align-items: center; gap: 5px; margin-bottom: 2px; }
+
+        .pose-indicator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #94a3b8;
+            font-size: 11px;
+            font-weight: 600;
+            opacity: 0.5;
+        }
+        .pose-indicator i { font-size: 18px; margin-bottom: 4px; }
+
+        /* MESSAGING FORM */
+        .msg-form { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .msg-form textarea { grid-column: span 2; padding: 15px; border-radius: 12px; border: 1px solid var(--border); outline: none; min-height: 100px; }
+        .btn-send { background: var(--blue); color: white; border: none; padding: 12px 25px; border-radius: 10px; font-weight: 700; cursor: pointer; transition: 0.3s; }
+        .btn-send:hover { opacity: 0.9; transform: scale(1.05); }
+
+        @media print {
+            .top-bar, .sidebar-card, .msg-section, .btn-print, .notif-btn { display: none !important; }
+            body { background: white; padding: 0; }
+            .dashboard-container { display: block; margin: 0; padding: 0; }
+            .section-card { border: none; box-shadow: none; padding: 0; }
+            .grid-planning { border: 2px solid #000; }
+            .cell { border: 1px solid #000; color: black; }
+        }
+
+        /* NOTIFICATION BOX */
+        .notif-popup {
+            position: fixed; top: 80px; right: 40px; width: 320px; background: white; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+            border: 1px solid var(--border); padding: 20px; display: none; z-index: 200;
+        }
+        .notif-item { padding: 12px; border-bottom: 1px solid var(--slate); font-size: 13px; }
+        .notif-item:last-child { border: none; }
+
+        /* ATTENDANCE TOGGLE */
+        .switch-container { display: flex; align-items: center; gap: 10px; background: #f1f5f9; padding: 5px; border-radius: 50px; width: fit-content; margin: 0 auto; }
+        .switch-option { padding: 6px 15px; border-radius: 40px; cursor: pointer; font-size: 11px; font-weight: 700; transition: 0.3s; user-select: none; }
+        .switch-option.present { color: #64748b; }
+        .switch-option.absent { color: #64748b; }
+        .switch-active-present { background: #10b981; color: white !important; box-shadow: 0 2px 10px rgba(16,185,129,0.2); }
+        .switch-active-absent { background: #ef4444; color: white !important; box-shadow: 0 2px 10px rgba(239,68,68,0.2); }
+
+        .btn-success { background: #10b981; color: white; border: none; padding: 12px 25px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 8px; }
+        .btn-success:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(16,185,129,0.2); }
+        .btn-success:disabled { background: #94a3b8; cursor: not-allowed; transform: none; box-shadow: none; }
+    </style>
+</head>
+<body>
+
+    <header class="top-bar">
+        <div class="logo"><i class="fa-solid fa-graduation-cap"></i> ESIP</div>
+        <div class="top-actions">
+            <div class="notif-btn" onclick="toggleNotifs()">
+                <i class="fa-solid fa-bell"></i>
+                <div class="notif-badge" id="notifCount">0</div>
+            </div>
+            <button class="logout-btn" onclick="location.href='parametre_prof.html'" style="background:var(--blue);"><i class="fa-solid fa-gear"></i> Paramètres</button>
+            <button class="logout-btn" onclick="logout()">Déconnexion</button>
+        </div>
+    </header>
+
+    <!-- NOTIF POPUP -->
+    <div class="notif-popup" id="notifPopup">
+        <h4 style="margin-bottom:15px; font-weight:800;">Notifications</h4>
+        <div id="notifList">
+            <div class="notif-item">Bienvenue sur votre nouvel espace PRO.</div>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        
+        <!-- SIDEBAR -->
+        <aside class="sidebar-card">
+            <div class="profile-header">
+                <img id="profPhoto" src="https://via.placeholder.com/130" class="prof-avatar">
+                <div class="prof-name" id="profDisplayName">Chargement...</div>
+                <div class="prof-grade" id="profGrade">Assistant</div>
+            </div>
+
+            <div class="form-group">
+                <label>CIN (Lecture Seule)</label>
+                <input type="text" id="profCin" disabled>
+            </div>
+            <div class="form-group">
+                <label>Nom & Prénom (Lecture Seule)</label>
+                <input type="text" id="profFullname" disabled>
+            </div>
+            <div class="form-group">
+                <label>Email Professionnel</label>
+                <input type="email" id="profEmail">
+            </div>
+            <div class="form-group">
+                <label>Numéro de Téléphone</label>
+                <input type="text" id="profTel">
+            </div>
+            <div class="form-group">
+                <label>Mot de Passe</label>
+                <input type="password" id="profPass" placeholder="••••••••">
+            </div>
+            <div class="form-group">
+                <label>Changer Photo (Lien URL)</label>
+                <input type="text" id="profPhotoUrl" placeholder="URL de la photo">
+            </div>
+
+            <button class="btn-update" onclick="updateProfile()">Mettre à jour mon profil</button>
+        </aside>
+
+        <!-- MAIN AREA -->
+        <main class="main-content">
+            
+            <!-- SCHEDULE -->
+            <section class="section-card">
+                <div class="section-title">
+                    <h3><i class="fa-solid fa-calendar-alt"></i> Mon Emploi du Temps Hebdomadaire</h3>
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn-print" onclick="window.print()" style="padding:8px 15px; border-radius:10px; border:1px solid #e2e8f0; color:var(--secondary); background:white; cursor:pointer; font-weight:700;"><i class="fa-solid fa-print"></i></button>
+                        <button class="btn-download" onclick="downloadPDF()" style="padding:8px 20px; border-radius:10px; border:none; color:white; background:var(--blue); cursor:pointer; font-weight:700; display:flex; align-items:center; gap:8px; transition:0.3s; box-shadow:0 4px 15px rgba(37,99,235,0.2);">
+                            <i class="fa-solid fa-file-pdf"></i> Télécharger PDF
+                        </button>
+                    </div>
+                </div>
+                <div class="grid-planning" id="profScheduleGrid">
+                    <!-- Dynamic Grid -->
+                </div>
+            </section>
+
+            <!-- PERSONAL PRESENCE HISTORY -->
+            <section class="section-card">
+                <div class="section-title">
+                    <h3><i class="fa-solid fa-history"></i> Mon Historique de Pointage</h3>
+                </div>
+                <table>
+                    <thead>
+                        <tr style="background:#f1f5f9;">
+                            <th style="padding:15px;">Date</th>
+                            <th style="padding:15px;">Séance</th>
+                            <th style="padding:15px;">Matière</th>
+                            <th style="padding:15px; text-align:center;">Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody id="profAbsHistory">
+                        <tr><td colspan="4" style="text-align:center; padding:30px; color:var(--text-light);">Chargement de l'historique...</td></tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- ATTENDANCE TAKING SECTION (TAKE APPEL) -->
+            <section class="section-card" style="border: 2px solid var(--blue); background: #f0f7ff;">
+                <div class="section-title">
+                    <h3><i class="fa-solid fa-check-to-slot"></i> Faire l'Appel (Prise de Présence)</h3>
+                </div>
+                <div style="margin-bottom:20px; display:flex; gap:15px; flex-wrap:wrap; align-items:flex-end;">
+                    <div style="flex:1; min-width:180px;">
+                        <label style="font-size:12px; font-weight:700; color:var(--text-light);">GROUP / CLASSE</label>
+                        <select id="appelClassSelector" onchange="loadAppelStudents(this.value)" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border); margin-top:5px;">
+                            <option value="">Choisir une classe</option>
+                        </select>
+                    </div>
+                    <div style="flex:1; min-width:180px;">
+                        <label style="font-size:12px; font-weight:700; color:var(--text-light);">DATE DE LA SÉANCE</label>
+                        <input type="date" id="appelDate" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border); margin-top:5px;">
+                    </div>
+                    <div style="flex:1; min-width:180px;">
+                        <label style="font-size:12px; font-weight:700; color:var(--text-light);">MATIÈRE</label>
+                        <input type="text" id="appelMatiere" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border); margin-top:5px; background:#f8fafc;" disabled>
+                    </div>
+                </div>
+
+                <div id="appelContainer" style="display:none;">
+                    <table style="margin-top:10px;">
+                        <thead>
+                            <tr style="background:rgba(37,99,235,0.05);">
+                                <th style="padding:15px;">Étudiant</th>
+                                <th style="padding:15px; text-align:center;">Présence</th>
+                            </tr>
+                        </thead>
+                        <tbody id="appelTableBody">
+                            <!-- Students list with toggles -->
+                        </tbody>
+                    </table>
+                    <div style="margin-top:25px; display:flex; justify-content:flex-end; gap:15px;">
+                        <button class="logout-btn" onclick="document.getElementById('appelContainer').style.display='none'" style="background:#cbd5e1; color:#475569;">Annuler</button>
+                        <button class="btn-success" id="btnSaveAppel" onclick="saveAttendance()">
+                            <i class="fa-solid fa-cloud-arrow-up"></i> Enregistrer l'Appel
+                        </button>
+                    </div>
+                </div>
+                <div id="appelEmptyState" style="text-align:center; padding:40px; color:var(--text-light);">
+                    <i class="fa-solid fa-users-viewfinder" style="font-size:40px; margin-bottom:15px; opacity:0.3; display:block;"></i>
+                    Veuillez sélectionner une classe pour commencer l'appel.
+                </div>
+            </section>
+
+            <!-- STUDENT MONITORING SECTION -->
+            <section class="section-card">
+                <div class="section-title">
+                    <h3><i class="fa-solid fa-user-graduate"></i> Suivi de mes Étudiants (Absences)</h3>
+                </div>
+                <div style="margin-bottom:15px; display:flex; gap:10px; align-items:center;">
+                    <i class="fa-solid fa-filter" style="color:var(--blue)"></i>
+                    <select id="monitorClassSelector" onchange="refreshMonitorTable(this.value)" style="padding:10px; border-radius:10px; border:1px solid var(--border); width:200px;">
+                        <option value="">Sélectionner un Groupe</option>
+                    </select>
+                </div>
+                <table>
+                    <thead>
+                        <tr style="background:#f1f5f9;">
+                            <th style="padding:15px;">Étudiant</th>
+                            <th style="padding:15px;">Classe</th>
+                            <th style="padding:15px; text-align:center;">Nb Absences</th>
+                            <th style="padding:15px; text-align:center;">Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentMonitorBody">
+                        <tr><td colspan="4" style="text-align:center; padding:30px; color:var(--text-light);">Chargement du suivi...</td></tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- MESSAGING -->
+            <section class="section-card msg-section">
+                <div class="section-title">
+                    <h3><i class="fa-solid fa-envelope-open-text"></i> Messagerie Interne</h3>
+                </div>
+                <div class="msg-form">
+                    <div class="form-group">
+                        <label>Destinataire</label>
+                        <select id="msgDest" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border);">
+                            <option value="Administration">Direction / Administration</option>
+                            <option value="Profs">Collègues (Général)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Sujet</label>
+                        <input type="text" id="msgSubject" placeholder="Ex: Demande de congé, Rapport...">
+                    </div>
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label><i class="fa-solid fa-paperclip"></i> Pièce Jointe (Optionnel)</label>
+                        <input type="file" id="msgFile" style="padding:8px;">
+                    </div>
+                    <textarea id="msgContent" placeholder="Écrivez votre message ici..."></textarea>
+                    <button class="btn-send" id="btnSendMessage" onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i> Envoyer le message</button>
+                </div>
+
+                <div style="margin-top:30px; border-top:1px solid #eee; padding-top:20px;">
+                    <h4 style="margin-bottom:15px; font-weight:800; color:var(--navy);"><i class="fa-solid fa-clock-rotate-left"></i> Historique de mes messages</h4>
+                    <div id="myMessagesList" style="display:flex; flex-direction:column; gap:12px;">
+                        <p style="font-size:12px; color:var(--text-light); text-align:center;">Chargement des messages...</p>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+    </div>
+    <section class="section-card">
+    <div class="section-title">
+        <h3><i class="fa-solid fa-user-plus"></i> Ajouter un Étudiant</h3>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+        <input id="st_name" placeholder="Nom" style="padding:12px;border:1px solid #ccc;border-radius:10px;">
+        <input id="st_prenom" placeholder="Prénom" style="padding:12px;border:1px solid #ccc;border-radius:10px;">
+        <input id="st_classe" placeholder="Classe" style="padding:12px;border:1px solid #ccc;border-radius:10px;">
+        <input id="st_email" placeholder="Email" style="padding:12px;border:1px solid #ccc;border-radius:10px;">
+    </div>
+
+    <input type="file" id="st_images" multiple style="margin-top:15px;">
+
+    <button onclick="addStudent()" class="btn-success" style="margin-top:15px;">
+        Ajouter + Embeddings Face
+    </button>
+</section>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, doc, onSnapshot, query, where, updateDoc, addDoc, getDocs, Timestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signOut, updateEmail, updatePassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD56AbWLar8R7qe4x__3a8dfZop6A1jew0",
+            authDomain: "pfe2026-2cd50.firebaseapp.com",
+            projectId: "pfe2026-2cd50"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let currentUserData = null;
+
+        onAuthStateChanged(auth, async (user) => {
+            if(!user) { window.location.href = "login.html"; return; }
+            
+            // Fetch User Data from Firestore
+            const q = query(collection(db, "professeur"), where("email", "==", user.email));
+            const snap = await getDocs(q);
+            
+            snap.forEach(d => {
+                currentUserData = d.data();
+                currentUserData.id = d.id;
+                fillProfile(currentUserData);
+                let fullName = currentUserData.nom + " " + (currentUserData.prenom || "");
+                loadSchedule(fullName);
+                loadAbsences(d.id);
+                initStudentMonitoring(currentUserData);
+                startMessageListener(currentUserData.email);
+            });
+        });
+
+        function startMessageListener(email) {
+            const q = query(collection(db, "messages"), where("email", "==", email), orderBy("date", "desc"));
+            onSnapshot(q, (snap) => {
+                const list = document.getElementById("myMessagesList");
+                if(snap.empty) {
+                    list.innerHTML = '<p style="font-size:12px; color:var(--text-light); text-align:center;">Aucun message envoyé.</p>';
+                    return;
+                }
+                let html = "";
+                snap.forEach(doc => {
+                    const m = doc.data();
+                    html += `
+                        <div style="background:#f8fafc; padding:15px; border-radius:15px; border:1px solid #e2e8f0;">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                                <strong style="font-size:13px; color:var(--navy);">${m.sujet}</strong>
+                                <span style="font-size:10px; color:var(--text-light);">${m.date ? m.date.toDate().toLocaleDateString() : 'Date inconnue'}</span>
+                            </div>
+                            <p style="font-size:12px; color:var(--text-dark);">${m.message}</p>
+                            ${m.adminReply ? `
+                                <div style="margin-top:10px; padding:10px; background:#eff6ff; border-radius:10px; border-left:3px solid var(--blue);">
+                                    <strong style="color:var(--blue); font-size:11px; display:block; margin-bottom:2px;">Réponse Admin:</strong>
+                                    <div style="font-size:12px; color:var(--navy); font-style:italic;">${m.adminReply}</div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                });
+                list.innerHTML = html;
+            });
+        }
+        window.addStudent = async function() {
+    const name = document.getElementById("st_name").value;
+    const prenom = document.getElementById("st_prenom").value;
+    const classe = document.getElementById("st_classe").value;
+    const email = document.getElementById("st_email").value;
+    const files = document.getElementById("st_images").files;
+
+    if(!name || !classe || files.length === 0) {
+        alert("Missing data");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("prenom", prenom);
+    formData.append("classe", classe);
+    formData.append("email", email);
+
+    for(let f of files) {
+        formData.append("images", f);
+    }
+
+    const res = await fetch("http://127.0.0.1:8000/add-student", {
+        method: "POST",
+        body: formData
+    });
+
+    const data = await res.json();
+    alert(data.message);
+};
+
+        function fillProfile(data) {
+            document.getElementById("profDisplayName").innerText = data.nom + " " + (data.prenom || "");
+            document.getElementById("profFullname").value = data.nom + " " + (data.prenom || "");
+            document.getElementById("profGrade").innerText = data.grade || "Enseignant";
+            document.getElementById("profCin").value = data.cin || "N/A";
+            document.getElementById("profEmail").value = data.email || "";
+            document.getElementById("profTel").value = data["numero de telephone"] || "";
+            document.getElementById("profPhoto").src = data.photo || "https://via.placeholder.com/130";
+            document.getElementById("profPhotoUrl").value = data.photo || "";
+        }
+
+        window.updateProfile = async function() {
+            const user = auth.currentUser;
+            if(!user) return;
+
+            const newEmail = document.getElementById("profEmail").value.trim();
+            const newTel = document.getElementById("profTel").value.trim();
+            const newPhoto = document.getElementById("profPhotoUrl").value.trim();
+            const newPass = document.getElementById("profPass").value.trim();
+
+            try {
+                const updates = { email: newEmail, "numero de telephone": newTel, photo: newPhoto };
+                if(newPass) {
+                    await updatePassword(user, newPass);
+                    updates.password = newPass;
+                }
+                if(newEmail !== user.email) await updateEmail(user, newEmail);
+
+                await updateDoc(doc(db, "professeur", currentUserData.id), updates);
+                alert("Profil mis à jour avec succès !");
+                location.reload();
+            } catch (e) {
+                alert("Erreur : " + e.message);
+            }
+        };
+
+        function loadSchedule(profName) {
+            const days = ["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
+            const q = query(collection(db, "schedules"), where("prof", "==", profName));
+            
+            onSnapshot(q, (snap) => {
+                const filteredDocs = snap.docs.filter(d => d.data().isPublished !== false);
+                const grid = document.getElementById("profScheduleGrid");
+                grid.innerHTML = `<div class="cell header">Heure</div>${days.map(d => `<div class="cell header">${d}</div>`).join("")}`;
+
+                let hours = [];
+                filteredDocs.forEach(d => {
+                    let s = d.data();
+                    let h = s.heureDebut + "-" + s.heureFin;
+                    if(!hours.includes(h)) hours.push(h);
+                });
+                hours.sort();
+
+                hours.forEach(h => {
+                    grid.innerHTML += `<div class="cell header">${h}</div>`;
+                    days.forEach(day => {
+                        let content = "";
+                        filteredDocs.forEach(d => {
+                            let s = d.data();
+                            if((s.heureDebut + "-" + s.heureFin) === h && s.jour === day) {
+                                content += `
+                                    <div class="course-card">
+                                        <b>${s.matiere}</b>
+                                        <span><i class="fa-solid fa-users"></i> ${s.classe}</span>
+                                        <span><i class="fa-solid fa-location-dot"></i> ${s.salle}</span>
+                                    </div>
+                                `;
+                            }
+                        });
+                        if(content === "") {
+                            content = `<div class="pose-indicator"><i class="fa-solid fa-mug-hot"></i> Pause</div>`;
+                        }
+                        grid.innerHTML += `<div class="cell">${content}</div>`;
+                    });
+                });
+            });
+        }
+
+        window.downloadPDF = function() {
+            const element = document.createElement('div');
+            element.style.padding = '40px';
+            element.style.fontFamily = 'Poppins, sans-serif';
+            
+            const header = `
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #0f172a; padding-bottom:20px; margin-bottom:30px;">
+                    <div>
+                        <h1 style="margin:0; font-size:24px; color:#0f172a; font-weight:800;">ESIP GAFSA</h1>
+                        <p style="margin:0; font-size:12px; color:#64748b;">École Supérieure d'Ingénieurs et de Management de Gafsa</p>
+                    </div>
+                    <div style="text-align:right;">
+                        <h2 style="margin:0; font-size:18px; color:#2563eb; font-weight:700;">EMPLOI DU TEMPS</h2>
+                        <p style="margin:0; font-size:12px; color:#0f172a; font-weight:600;">Professeur: ${currentUserData.nom} ${currentUserData.prenom || ''}</p>
+                    </div>
+                </div>
+            `;
+            
+            const gridClone = document.getElementById('profScheduleGrid').cloneNode(true);
+            gridClone.style.boxShadow = 'none';
+            gridClone.style.border = '1px solid #e2e8f0';
+            
+            element.innerHTML = header + gridClone.outerHTML + `
+                <div style="margin-top:40px; text-align:right; font-size:11px; color:#94a3b8;">
+                    Généré le ${new Date().toLocaleDateString()} - ESIP Portal PRO
+                </div>
+            `;
+
+            const opt = {
+                margin: 10,
+                filename: `Emploi_${currentUserData.nom}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+            };
+
+            html2pdf().set(opt).from(element).save();
+        }
+
+        async function initStudentMonitoring(user) {
+            const classes = user.classes || [];
+            
+            const sel = document.getElementById("monitorClassSelector");
+            sel.innerHTML = '<option value="">Sélectionner un Groupe</option>';
+            classes.forEach(c => {
+                sel.innerHTML += `<option value="${c}">${c}</option>`;
+            });
+
+            if(classes.length > 0) {
+                // Listen to students in these classes
+                onSnapshot(query(collection(db, "etd"), where("classe", "in", classes)), (snapE) => {
+                    window.allStudentsInCharge = snapE.docs.map(d => ({id: d.id, ...d.data()}));
+                    refreshMonitorTable(sel.value);
+                });
+            } else {
+                document.getElementById("studentMonitorBody").innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">Aucune classe assignée. Contactez l\'administration.</td></tr>';
+            }
+        }
+
+        window.refreshMonitorTable = async function(filterClass = "") {
+            const body = document.getElementById("studentMonitorBody");
+            
+            if(!filterClass) {
+                body.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">Veuillez choisir un groupe pour voir la liste des étudiants.</td></tr>';
+                return;
+            }
+
+            body.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">Chargement...</td></tr>';
+            
+            let filtered = (window.allStudentsInCharge || []).filter(s => s.classe === filterClass);
+
+            if(filtered.length === 0) {
+                body.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">Aucun étudiant trouvé dans ce groupe.</td></tr>';
+                return;
+            }
+
+            // Get current presences for these students to calculate absences
+            const qP = query(collection(db, "presences"), where("matiere", "==", currentUserData.specialite || ""));
+            const snapP = await getDocs(qP);
+            const absencesMap = {};
+            snapP.forEach(doc => {
+                const p = doc.data();
+                if(!p.present) {
+                    absencesMap[p.studentId] = (absencesMap[p.studentId] || 0) + (p.absences || 1);
+                }
+            });
+
+            let html = "";
+            for(let s of filtered) {
+                let totalAbs = absencesMap[s.id] || 0;
+
+                let status = "En Règle";
+                let cls = "status-present";
+                if(totalAbs >= 5) { status = "ÉLIMINÉ"; cls = "status-absent"; }
+                else if(totalAbs == 4) { status = "Attention"; cls = ""; }
+
+                html += `
+                    <tr>
+                        <td style="padding:15px; font-weight:600; display:flex; align-items:center; gap:10px;">
+                            ${s.photo ? `<img src="${s.photo}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;">` : `<i class="fa-solid fa-user-graduate" style="color:#cbd5e1;"></i>`}
+                            ${s.nom} ${s.prenom}
+                        </td>
+                        <td style="padding:15px;">${s.classe}</td>
+                        <td style="padding:15px; text-align:center; font-weight:800; color:var(--blue);">${totalAbs}</td>
+                        <td style="padding:15px; text-align:center;"><span class="status-tag ${cls}">${status}</span></td>
+                    </tr>
+                `;
+            }
+            body.innerHTML = html;
+        }
+
+        // --- RESTORED FUNCTIONS ---
+        async function loadAbsences(uid) {
+            const q = query(collection(db, "presences"), where("userId", "==", uid));
+            onSnapshot(q, snap => {
+                const body = document.getElementById("profAbsHistory");
+                if(snap.empty) {
+                    body.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">Aucun historique trouvé</td></tr>';
+                    return;
+                }
+                body.innerHTML = "";
+                snap.forEach(d => {
+                    const a = d.data();
+                    const date = a.date instanceof Timestamp ? a.date.toDate().toLocaleDateString() : a.date;
+                    body.innerHTML += `
+                        <tr>
+                            <td style="padding:15px;">${date}</td>
+                            <td style="padding:15px;">${a.seance || "--"}</td>
+                            <td style="padding:15px;">${a.matiere || "Service Admin"}</td>
+                            <td style="padding:15px; text-align:center;"><span class="status-tag ${a.present ? 'status-present' : 'status-absent'}">${a.present ? 'Présent' : 'Absent'}</span></td>
+                        </tr>
+                    `;
+                });
+            });
+        }
+
+        window.sendMessage = async function() {
+            const dest = document.getElementById("msgDest").value;
+            const sub = document.getElementById("msgSubject").value.trim();
+            const content = document.getElementById("msgContent").value.trim();
+            const fileInput = document.getElementById("msgFile");
+            const btn = document.getElementById("btnSendMessage");
+
+            if(!sub || !content) { alert("Veuillez remplir le sujet et le contenu"); return; }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Envoi...';
+
+            try {
+                let attachment = null;
+                if(fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    attachment = await new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve({
+                            name: file.name,
+                            type: file.type,
+                            data: reader.result
+                        });
+                        reader.readAsDataURL(file);
+                    });
+                }
+
+                await addDoc(collection(db, "messages"), {
+                    expediteur: currentUserData.nom + " " + (currentUserData.prenom || ""),
+                    email: currentUserData.email,
+                    role: "prof",
+                    destinataire: dest,
+                    sujet: sub,
+                    message: content,
+                    attachment: attachment,
+                    date: Timestamp.now(),
+                    read: false
+                });
+
+                alert("Message envoyé avec succès !");
+                document.getElementById("msgSubject").value = "";
+                document.getElementById("msgContent").value = "";
+                fileInput.value = "";
+            } catch (e) { 
+                console.error(e);
+                alert("Erreur d'envoi: " + e.message); 
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Envoyer le message';
+            }
+        };
+
+        window.toggleNotifs = () => {
+            const p = document.getElementById("notifPopup");
+            p.style.display = p.style.display === "block" ? "none" : "block";
+        };
+
+        window.logout = () => signOut(auth).then(() => window.location.href = "login.html");
+
+        // --- ATTENDANCE FEATURE LOGIC ---
+        let currentAppelStudents = [];
+
+        window.loadAppelStudents = async function(classe) {
+            const container = document.getElementById("appelContainer");
+            const emptyState = document.getElementById("appelEmptyState");
+            const body = document.getElementById("appelTableBody");
+            
+            if(!classe) {
+                container.style.display = "none";
+                emptyState.style.display = "block";
+                return;
+            }
+
+            body.innerHTML = '<tr><td colspan="2" style="text-align:center; padding:20px;">Chargement de la liste...</td></tr>';
+            container.style.display = "block";
+            emptyState.style.display = "none";
+
+            try {
+                const q = query(collection(db, "etd"), where("classe", "==", classe));
+                const snap = await getDocs(q);
+                currentAppelStudents = [];
+                body.innerHTML = "";
+
+                if(snap.empty) {
+                    body.innerHTML = '<tr><td colspan="2" style="text-align:center; padding:20px;">Aucun étudiant dans cette classe.</td></tr>';
+                    return;
+                }
+
+                snap.forEach(doc => {
+                    const s = doc.data();
+                    const sid = doc.id;
+                    currentAppelStudents.push({id: sid, ...s, isPresent: true});
+                    
+                    body.innerHTML += `
+                        <tr id="row-${sid}">
+                            <td style="padding:15px; display:flex; align-items:center; gap:12px;">
+                                ${s.photo ? `<img src="${s.photo}" style="width:35px;height:35px;border-radius:50%;object-fit:cover;">` : `<div style="width:35px;height:35px;border-radius:50%;background:#e2e8f0;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-user-graduate" style="color:#94a3b8"></i></div>`}
+                                <div style="font-weight:600; color:var(--navy);">${s.nom} ${s.prenom}</div>
+                            </td>
+                            <td style="padding:15px; text-align:center;">
+                                <div class="switch-container">
+                                    <div class="switch-option present switch-active-present" id="btn-pres-${sid}" onclick="togglePresence('${sid}', true)">PRÉSENT</div>
+                                    <div class="switch-option absent" id="btn-abs-${sid}" onclick="togglePresence('${sid}', false)">ABSENT</div>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (err) {
+                console.error(err);
+                body.innerHTML = '<tr><td colspan="2" style="text-align:center; padding:20px; color:#ef4444;">Erreur de chargement.</td></tr>';
+            }
+        };
+
+        window.togglePresence = function(sid, isPresent) {
+            const student = currentAppelStudents.find(s => s.id === sid);
+            if(student) student.isPresent = isPresent;
+
+            const btnPres = document.getElementById(`btn-pres-${sid}`);
+            const btnAbs = document.getElementById(`btn-abs-${sid}`);
+
+            if(isPresent) {
+                btnPres.classList.add("switch-active-present");
+                btnAbs.classList.remove("switch-active-absent");
+            } else {
+                btnPres.classList.remove("switch-active-present");
+                btnAbs.classList.add("switch-active-absent");
+            }
+        };
+
+        window.saveAttendance = async function() {
+            const btn = document.getElementById("btnSaveAppel");
+            const dateStr = document.getElementById("appelDate").value;
+            const matiere = document.getElementById("appelMatiere").value;
+
+            if(!dateStr) { alert("Veuillez choisir une date."); return; }
+            if(currentAppelStudents.length === 0) return;
+
+            if(!confirm("Voulez-vous enregistrer cet appel ?")) return;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enregistrement...';
+
+            try {
+                for(let s of currentAppelStudents) {
+                    const presRef = await addDoc(collection(db, "presences"), {
+                        studentId: s.id,
+                        matiere: matiere,
+                        date: Timestamp.fromDate(new Date(dateStr)),
+                        present: s.isPresent,
+                        absences: s.isPresent ? 0 : 1, // Store as 1 absence if not present
+                        profId: currentUserData.id,
+                        timestamp: Timestamp.now()
+                    });
+
+                    // Add Notification for Absent Students
+                    if(!s.isPresent) {
+                        await addDoc(collection(db, "notifications"), {
+                            userId: s.id,
+                            type: "absence",
+                            text: `Vous avez été marqué ABSENT en ${matiere} le ${new Date(dateStr).toLocaleDateString()}`,
+                            date: Timestamp.now(),
+                            read: false,
+                            referenceId: presRef.id
+                        });
+                    }
+                }
+                
+                alert("Appel enregistré avec succès !");
+                document.getElementById('appelContainer').style.display = 'none';
+                document.getElementById('appelClassSelector').value = "";
+                document.getElementById("btnSaveAppel").disabled = false;
+                document.getElementById("btnSaveAppel").innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Enregistrer l\'Appel';
+            } catch (err) {
+                console.error(err);
+                alert("Erreur lors de l'enregistrement: " + err.message);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Enregistrer l\'Appel';
+            }
+        };
+
+        // Initialize selectors
+        function setupAppelUI() {
+            const selAppel = document.getElementById("appelClassSelector");
+            const matField = document.getElementById("appelMatiere");
+            const dateField = document.getElementById("appelDate");
+            
+            // Set today's date
+            const today = new Date().toISOString().split('T')[0];
+            dateField.value = today;
+
+            // Fill classes
+            if(currentUserData && currentUserData.classes) {
+                selAppel.innerHTML = '<option value="">Choisir une classe</option>';
+                currentUserData.classes.forEach(c => {
+                    const opt = document.createElement("option");
+                    opt.value = opt.innerText = c;
+                    selAppel.appendChild(opt);
+                });
+                matField.value = currentUserData.specialite || "Matière Générale";
+            }
+        }
+
+        // Call setup when data is ready
+        const originalFillProfile = fillProfile;
+        fillProfile = function(data) {
+            originalFillProfile(data);
+            setupAppelUI();
+        };
+
+    </script>
+</body>
+</html>

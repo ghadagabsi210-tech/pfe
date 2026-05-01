@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard Admin - ESIP</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="darkmode.css">
+<script src="darkmode.js"></script>
+
+<style>
+:root {
+    --primary: #2563eb;
+    --secondary: #0f172a;
+    --light: #f8fafc;
+    --border: #e2e8f0;
+}
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Poppins',sans-serif;
+}
+
+body{
+background: var(--light);
+padding:40px;
+color: var(--secondary);
+}
+
+h1{
+margin-bottom:30px;
+font-weight: 800;
+}
+
+.stats{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+gap:20px;
+margin-bottom:40px;
+}
+
+.card{
+background:white;
+padding:30px;
+border-radius:20px;
+box-shadow:0 10px 30px rgba(15, 23, 42, 0.03);
+text-align:center;
+border: 1px solid var(--border);
+transition: 0.3s;
+}
+.card:hover { transform: translateY(-5px); }
+
+.card h2{
+font-size:40px;
+color: var(--primary);
+font-weight: 800;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+background:white;
+border-radius:15px;
+overflow:hidden;
+border: 1px solid var(--border);
+margin-top: 20px;
+}
+
+th,td{
+padding:15px;
+border-bottom:1px solid var(--border);
+text-align:left;
+font-size: 14px;
+}
+
+th{
+background: var(--secondary);
+color:white;
+}
+
+tr:hover{
+background:#f8fafc;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Dashboard Admin</h1>
+
+<div class="stats">
+    <div class="card">
+        <h2 id="studentsCount">0</h2>
+        <p>Étudiants</p>
+    </div>
+
+    <div class="card">
+        <h2 id="employeesCount">0</h2>
+        <p>Employés</p>
+    </div>
+
+    <div class="card">
+        <h2 id="messagesCount">0</h2>
+        <p>Messages</p>
+    </div>
+</div>
+
+<h2 style="margin-bottom:15px; font-weight: 700;">Messages reçus</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Message</th>
+        </tr>
+    </thead>
+    <tbody id="messagesTable"></tbody>
+</table>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD56AbWLar8R7qe4x__3a8dfZop6A1jew0",
+  authDomain: "pfe2026-2cd50.firebaseapp.com",
+  projectId: "pfe2026-2cd50"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+async function loadStats() {
+    // 1. Students Count
+    const stdSnap = await getDocs(collection(db, "etd"));
+    document.getElementById("studentsCount").innerText = stdSnap.size;
+
+    // 2. Employees Count
+    const empSnap = await getDocs(collection(db, "employes"));
+    document.getElementById("employeesCount").innerText = empSnap.size;
+
+    // 3. Messages
+    const messagesSnap = await getDocs(collection(db, "messages"));
+    document.getElementById("messagesCount").innerText = messagesSnap.size;
+
+    const messagesSnap = await getDocs(collection(db, "messages"));
+    document.getElementById("messagesCount").innerText = messagesSnap.size;
+
+    const table = document.getElementById("messagesTable");
+    messagesSnap.forEach((doc) => {
+        let data = doc.data();
+        table.innerHTML += `
+            <tr>
+                <td>${data.email || '-'}</td>
+                <td>${data.phone || '-'}</td>
+                <td>${data.message || '-'}</td>
+            </tr>
+        `;
+    });
+}
+
+loadStats();
+</script>
+</body>
+</html>

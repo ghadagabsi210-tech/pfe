@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Gestion Professeurs</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="darkmode.css">
+<script src="darkmode.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
+<style>
+    :root {
+        --primary: #2563eb;
+        --secondary: #0f172a;
+        --light: #f1f5f9;
+        --text: #1e293b;
+    }
+
+    *{margin:0;padding:0;box-sizing:border-box;font-family:Poppins;}
+    body{background: var(--light); color: var(--text); padding:40px;}
+
+    .top-bar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:30px;
+    flex-wrap:wrap;
+    gap:10px;
+    }
+
+    button{
+    border:none;
+    padding:10px 18px;
+    border-radius:12px;
+    cursor:pointer;
+    font-weight:600;
+    color:white;
+    transition: 0.3s;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+
+    button:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0,0,0.1); }
+
+    .btn-retour{background: var(--secondary);}
+    .btn-add{background: var(--primary);}
+    .btn-export{background: #475569;}
+    .btn-import{background:#d4c2ad;color:#1a140f;}
+
+    .btn-delete{background:#ef4444;padding:6px 12px; margin-top:5px;}
+    .btn-edit{background: #64748b; padding:6px 12px; margin-top:5px;}
+
+    table{
+    width:100%;
+    border-collapse:collapse;
+    background:white;
+    border-radius:16px;
+    overflow:hidden;
+    box-shadow:0 10px 30px rgba(0,0,0,0.03);
+    border: 1px solid #e2e8f0;
+    }
+
+    th{background: var(--secondary); color:white; padding:18px; font-size: 13px; text-transform: uppercase; letter-spacing: 1px;}
+    td{padding:15px; text-align:center; border-bottom:1px solid #f1f5f9; font-size: 14px; color: #475569; transition: 0.3s;}
+    tr:hover td{background:#f8fafc; color: var(--primary);}
+
+    .photo-cell img { width:45px; height:45px; border-radius:50%; object-fit:cover; border:2px solid #e2e8f0; }
+
+    .modal{
+    position:fixed;
+    top:0;left:0;
+    width:100%;height:100%;
+    background:rgba(0,0,0,0.5);
+    display:none;
+    justify-content:center;
+    align-items:center;
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    }
+
+    .modal-content{
+    background:white;
+    padding:30px;
+    border-radius:20px;
+    width:400px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+    }
+
+    .modal-content h3 { color: var(--secondary); margin-bottom: 20px; }
+
+    .modal-content input, .modal-content select{
+    width:100%;
+    padding:12px;
+    margin:8px 0;
+    border:1px solid #e2e8f0;
+    border-radius:10px;
+    outline: none;
+    }
+
+    .modal-content input:focus { border-color: var(--primary); }
+
+    #msg{font-size:14px;margin-bottom:10px;}
+
+</style>
+</head>
+
+<body>
+
+    <div class="lang-switch" style="position:fixed; top:20px; right:200px; display:flex; gap:10px; z-index:9999; background:white; padding:10px; border-radius:20px; box-shadow:0 4px 15px rgba(0,0,0,0.1);">
+        <a href="#" id="lang-fr" onclick="changeLang('fr')" style="text-decoration:none; color:#64748b; font-weight:bold; font-size:12px;">FR</a>
+        <a href="#" id="lang-en" onclick="changeLang('en')" style="text-decoration:none; color:#64748b; font-weight:bold; font-size:12px;">EN</a>
+    </div>
+    <div class="top-bar">
+
+<button class="btn-retour" onclick="window.location.href='admin.html'"><i class="fa-solid fa-arrow-left" style="font-size:14px"></i> Retour</button>
+
+<h2>Liste des Professeurs - <span onclick="location.href='admin.html'" style="cursor:pointer; color:#8c7851;">ESIP</span></h2>
+<input type="text" id="searchBar" placeholder="Rechercher (Nom, CIN...)" onkeyup="searchProf()" style="padding: 10px; border-radius: 8px; border: 1px solid #ccc; width:220px;">
+
+<div>
+<button class="btn-add" onclick="openModal()"><i class="fa-solid fa-plus" style="font-size:14px"></i> Ajouter</button>
+<button class="btn-export" onclick="exportData()"><i class="fa-solid fa-download" style="font-size:14px"></i> Export</button>
+<button class="btn-import" onclick="importExcel()"><i class="fa-solid fa-upload" style="font-size:14px"></i> Import</button>
+</div>
+
+</div>
+
+<table>
+<thead>
+<tr>
+<th>Photo</th>
+<th>CIN</th>
+<th>Nom & Prénom</th>
+<th>Spécialité</th>
+<th>Email</th>
+<th>Téléphone</th>
+<th style="width: 180px;">Mot de passe</th>
+<th>Classes</th>
+<th style="width: 140px;">Action</th>
+</tr>
+</thead>
+<tbody id="profTable"></tbody>
+</table>
+
+<!-- SECTION ABSENCES -->
+<div style="margin-top: 50px; background: white; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; animation: fadeIn 0.8s;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:15px;">
+        <h2 style="color:var(--secondary); font-size:20px; margin:0;"><i class="fa-solid fa-list-check" style="color:var(--primary); margin-right:8px;"></i> Suivi des Absences - Professeurs</h2>
+        <input type="text" id="searchProfAbs" placeholder="Rechercher par nom ou séance..." onkeyup="filterProfAbsences()" style="padding:10px 15px; border-radius:30px; border:1px solid #e2e8f0; outline:none; font-family:Poppins; width:280px; box-shadow:0 3px 10px rgba(0,0,0,0.02);">
+    </div>
+
+    <table style="box-shadow:none; border:1px solid #e2e8f0; background:white;">
+        <thead style="background:#f8fafc;">
+            <tr>
+                <th style="color:var(--secondary); background:transparent; border-bottom:2px solid #e2e8f0; text-align:left;">Professeur</th>
+                <th style="color:var(--secondary); background:transparent; border-bottom:2px solid #e2e8f0;">Spécialité</th>
+                <th style="color:var(--secondary); background:transparent; border-bottom:2px solid #e2e8f0; text-align:left;">Séance / Période</th>
+                <th style="color:var(--secondary); background:transparent; border-bottom:2px solid #e2e8f0;">Nb. Absences</th>
+                <th style="color:var(--secondary); background:transparent; border-bottom:2px solid #e2e8f0;">Statut</th>
+            </tr>
+        </thead>
+        <tbody id="absencesList"></tbody>
+    </table>
+</div>
+
+<!-- MODAL -->
+<div class="modal" id="modal">
+<div class="modal-content">
+
+<h3 id="modalTitle">Ajouter Professeur</h3>
+
+<div id="msg"></div>
+
+<input type="hidden" id="editId">
+<input id="cin" placeholder="CIN (8 chiffres)">
+<input id="nom" placeholder="Nom">
+<input id="prenom" placeholder="Prénom">
+<input id="tel" placeholder="Numéro de Téléphone">
+<input id="grade" placeholder="Grade (Ex: MC, MA...)">
+<select id="specialite">
+<option value="">Choisir la Spécialité</option>
+<optgroup label="── Informatique ──">
+<option>Algorithmique</option>
+<option>Programmation</option>
+<option>Programmation Orientée Objet</option>
+<option>Structures de Données</option>
+<option>Base de données</option>
+<option>Développement Web</option>
+<option>Développement Mobile</option>
+<option>Génie Logiciel</option>
+<option>Intelligence Artificielle</option>
+<option>Machine Learning</option>
+<option>Réseaux</option>
+<option>Systèmes</option>
+<option>Systèmes d'Exploitation</option>
+<option>Sécurité Informatique</option>
+<option>Architecture des Ordinateurs</option>
+<option>Cloud Computing</option>
+</optgroup>
+<optgroup label="── Gestion & Économie ──">
+<option>Gestion</option>
+<option>Gestion de Projet</option>
+<option>Comptabilité</option>
+<option>Économie</option>
+<option>Marketing Digital</option>
+<option>Droit des Affaires</option>
+<option>Management</option>
+<option>Entrepreneuriat</option>
+</optgroup>
+<optgroup label="── Sciences & Langues ──">
+<option>Mathématiques</option>
+<option>Statistiques & Probabilités</option>
+<option>Physique</option>
+<option>Anglais</option>
+<option>Français</option>
+<option>Communication</option>
+<option>Techniques d'Expression</option>
+</optgroup>
+<optgroup label="── Travaux Pratiques (TP) ──">
+<option>TP Programmation</option>
+<option>TP Base de données</option>
+<option>TP Réseaux</option>
+<option>TP Systèmes</option>
+<option>TP Développement Web</option>
+<option>TP Développement Mobile</option>
+<option>TP Intelligence Artificielle</option>
+<option>TP Génie Logiciel</option>
+<option>TP Sécurité Informatique</option>
+</optgroup>
+</select>
+<input id="email" placeholder="Email Principal">
+<div style="display:flex; flex-direction:column; gap:8px;">
+    <label style="font-size:12px; font-weight:700; color:#64748b;">Classes Assignées</label>
+    <div id="classesCheckboxes" style="display:grid; grid-template-columns:1fr 1fr; gap:5px; background:#f8fafc; padding:10px; border-radius:10px; border:1px solid #e2e8f0;">
+        <label style="font-size:12px;"><input type="checkbox" value="INFO1"> INFO1</label>
+        <label style="font-size:12px;"><input type="checkbox" value="INFO2"> INFO2</label>
+        <label style="font-size:12px;"><input type="checkbox" value="INFO3"> INFO3</label>
+        <label style="font-size:12px;"><input type="checkbox" value="ENG1"> ENG1</label>
+        <label style="font-size:12px;"><input type="checkbox" value="ENG2"> ENG2</label>
+        <label style="font-size:12px;"><input type="checkbox" value="GESTION1"> GESTION1</label>
+    </div>
+</div>
+
+<div style="display:flex; flex-direction:column; gap:8px;">
+    <label style="font-size:12px; font-weight:700; color:#64748b;">Photo de Profil</label>
+    <div style="display:flex; gap:10px;">
+        <input type="file" id="photoFile" style="flex:1; padding:10px;">
+        <input id="photo" placeholder="URL Photo (Optionnel)" style="flex:1;">
+    </div>
+</div>
+
+<button class="btn-add" onclick="addProf()" id="saveBtn">Ajouter</button>
+<button onclick="closeModal()">Annuler</button>
+
+</div>
+</div>
+
+<!-- SUCCESS MODAL -->
+<div class="modal" id="successModal">
+    <div class="modal-content" style="text-align:center;">
+        <div style="width:70px; height:70px; background:#d1fae5; color:#10b981; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 20px auto; font-size:30px;">
+            <i class="fa-solid fa-check"></i>
+        </div>
+        <h3>Compte Créé !</h3>
+        <p style="color:#64748b; font-size:14px; margin-bottom:20px;">Le compte a été créé avec succès. Voici les identifiants :</p>
+        
+        <div style="background:#f8fafc; padding:20px; border-radius:15px; text-align:left; border:1px solid #e2e8f0; margin-bottom:20px;">
+            <div style="margin-bottom:10px;">
+                <label style="margin:0; font-size:11px; text-transform:uppercase; letter-spacing:1px; color:#64748b;">Email</label>
+                <div style="display:flex; justify-content:space-between; align-items:center; font-weight:700; color:var(--secondary);">
+                    <span id="succEmail">---</span>
+                    <i class="fa-solid fa-copy" style="cursor:pointer; color:var(--primary);" onclick="copyToClipboard(document.getElementById('succEmail').innerText)"></i>
+                </div>
+            </div>
+            <div>
+                <label style="margin:0; font-size:11px; text-transform:uppercase; letter-spacing:1px; color:#64748b;">Mot de passe</label>
+                <div style="display:flex; justify-content:space-between; align-items:center; font-weight:700; color:var(--secondary);">
+                    <span id="succPass" style="font-family:monospace; font-size:18px;">---</span>
+                    <i class="fa-solid fa-copy" style="cursor:pointer; color:var(--primary);" onclick="copyToClipboard(document.getElementById('succPass').innerText)"></i>
+                </div>
+            </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:10px;">
+            <button class="btn-add" style="justify-content:center; display:flex; align-items:center; gap:8px;" onclick="sendManualEmail('Professeur', document.getElementById('succEmail').innerText, document.getElementById('succPass').innerText)">
+                <i class="fa-solid fa-envelope"></i> Envoyer Manuellement
+            </button>
+            <button class="btn-retour" style="justify-content:center; display:flex; align-items:center; gap:8px; background:#f1f5f9; color:var(--secondary);" onclick="document.getElementById('successModal').style.display='none'">Fermer</button>
+        </div>
+    </div>
+</div>
+
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore,collection,getDocs,doc,setDoc,deleteDoc,updateDoc,onSnapshot }
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth,createUserWithEmailAndPassword,signOut }
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+const firebaseConfig = {
+apiKey:"AIzaSyD56AbWLar8R7qe4x__3a8dfZop6A1jew0",
+authDomain:"pfe2026-2cd50.firebaseapp.com",
+projectId:"pfe2026-2cd50",
+storageBucket:"pfe2026-2cd50.appspot.com",
+messagingSenderId:"263356463306",
+appId:"1:263356463306:web:bf3b02eb9ec97dce069c33"
+};
+
+const app = initializeApp(firebaseConfig)
+const db = getFirestore(app)
+const auth = getAuth(app)
+
+// Workaround to prevent admin logout when creating new users
+const secondaryApp = initializeApp(firebaseConfig, "SecondaryApp");
+const secondaryAuth = getAuth(secondaryApp);
+
+// --- CONFIGURATION EMAILJS ---
+const EMAILJS_PUBLIC_KEY = "89VgfdkHUrxYc1zoK"; 
+const EMAILJS_SERVICE_ID = "service_kt5zi5k"; 
+const EMAILJS_TEMPLATE_ID = "template_qrg9zr6"; 
+
+emailjs.init(EMAILJS_PUBLIC_KEY);
+
+async function sendEmailCredentials(name, email, password) {
+  try {
+    const templateParams = {
+      to_name: name,
+      to_email: email,
+      password: password,
+    };
+    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
+  } catch (err) {
+    console.error("EmailJS Error:", err);
+  }
+}
+
+window.togglePass = (id, pass) => {
+    const el = document.getElementById(id);
+    if(el.innerText === "********") {
+        el.innerText = pass;
+        el.style.color = "var(--secondary)";
+    } else {
+        el.innerText = "********";
+        el.style.color = "var(--primary)";
+    }
+};
+
+window.copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text).then(() => {
+        alert("📋 Mot de passe copié !");
+    });
+};
+
+window.sendManualEmail = (name, email, pass) => {
+    const subject = encodeURIComponent("ESIP - Vos identifiants de connexion");
+    const body = encodeURIComponent(`Bonjour ${name},\n\nVoici vos identifiants pour accéder au portail ESIP Gafsa :\n\nEmail : ${email}\nMot de passe : ${pass}\n\nLien de connexion : ${window.location.origin}/login.html\n\nCordialement,\nService Administratif ESIP`);
+    window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+};
+
+// ===== UI =====
+
+window.openModal=()=>{
+    document.getElementById("modalTitle").innerText="Ajouter Professeur";
+    document.getElementById("saveBtn").innerText="Ajouter";
+    document.getElementById("editId").value="";
+    document.getElementById("cin").value="";
+    document.getElementById("nom").value="";
+    document.getElementById("prenom").value="";
+    document.getElementById("tel").value="";
+    document.getElementById("grade").value="";
+    document.getElementById("specialite").value="";
+    document.getElementById("email").value="";
+    document.getElementById("photo").value="";
+    document.querySelectorAll("#classesCheckboxes input").forEach(i => i.checked = false);
+    document.getElementById("modal").style.display="flex";
+    showMsg("");
+}
+
+window.closeModal=()=>{
+    document.getElementById("modal").style.display="none";
+}
+
+window.goAdmin=()=>location.href="admin.html"
+
+window.searchProf=()=>{
+  let filter=document.getElementById("searchBar").value.toLowerCase();
+  let trs=document.querySelectorAll("#profTable tr");
+  trs.forEach(tr => {
+    tr.style.display = tr.innerText.toLowerCase().includes(filter) ? "" : "none";
+  });
+}
+
+
+
+// ===== Helpers =====
+
+function showMsg(text,color="red"){
+let m=document.getElementById("msg")
+m.style.color=color
+m.innerText=text
+}
+
+function validEmail(email){
+return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+}
+
+function generatePassword(){
+return Math.random().toString(36).slice(-8)
+}
+
+// ===== ADD PROF =====
+
+window.addProf=async ()=>{
+
+let editId=document.getElementById("editId").value;
+let cinVal=document.getElementById("cin").value.trim()
+let nomVal=document.getElementById("nom").value.trim()
+let prenomVal=document.getElementById("prenom").value.trim()
+let telVal=document.getElementById("tel").value.trim()
+let gradeVal=document.getElementById("grade").value.trim()
+let specialiteVal=document.getElementById("specialite").value.trim()
+let emailVal=document.getElementById("email").value.trim()
+let photoFile=document.getElementById("photoFile").files[0]
+let photoVal=document.getElementById("photo").value.trim()
+let classesArr = Array.from(document.querySelectorAll("#classesCheckboxes input:checked")).map(i => i.value);
+
+if(!nomVal || !prenomVal || !specialiteVal || !emailVal){
+    showMsg("Champs obligatoires manquants");
+    return;
+}
+
+// Photo Upload Logic
+let photoURL = photoVal;
+if(photoFile){
+    photoURL = await new Promise(resolve=>{
+        let reader=new FileReader()
+        reader.onload=()=>resolve(reader.result)
+        reader.readAsDataURL(photoFile)
+    })
+}
+
+if(!validEmail(emailVal)){
+showMsg("Email invalide")
+return
+}
+
+if(!editId){
+  // check duplicate
+  const snap=await getDocs(collection(db,"professeur"))
+  let exist=false
+  snap.forEach(d=>{
+  if(d.data().email===emailVal) exist=true
+  })
+
+  if(exist){
+  showMsg("Email déjà utilisé")
+  return
+  }
+}
+
+try{
+  if(editId) {
+    await updateDoc(doc(db,"professeur",editId),{
+      cin:cinVal,
+      nom:nomVal,
+      prenom:prenomVal,
+      "numero de telephone":telVal,
+      grade:gradeVal,
+      specialite:specialiteVal,
+      email:emailVal,
+      photo:photoURL,
+      classes:classesArr
+    });
+    alert("Professeur modifié !");
+    closeModal();
+  } else {
+    let password = Math.floor(10000000 + Math.random() * 90000000).toString(); // Standardize to 8 digits
+    try {
+      const userCred = await createUserWithEmailAndPassword(secondaryAuth, emailVal, password);
+      await signOut(secondaryAuth); // Sign out of secondary instance to prevent session conflicts
+
+      // Envoyer l'email
+      await sendEmailCredentials(nomVal + " " + prenomVal, emailVal, password);
+
+      await setDoc(doc(db, "professeur", userCred.user.uid), {
+        cin: cinVal,
+        nom: nomVal,
+        prenom: prenomVal,
+        "numero de telephone": telVal,
+        grade: gradeVal,
+        specialite: specialiteVal,
+        email: emailVal,
+        photo: photoURL,
+        role: "prof",
+        password,
+        classes: classesArr
+      });
+      alert("Professeur créé avec succès et email envoyé !");
+      closeModal();
+    } catch(e) {
+      alert("Erreur Creation: " + e.message);
+    }
+  }
+
+  if(!editId) {
+    document.getElementById("succEmail").innerText = emailVal;
+    document.getElementById("succPass").innerText = password;
+    document.getElementById("modal").style.display = "none";
+    document.getElementById("successModal").style.display = "flex";
+  } else {
+    closeModal();
+  }
+  loadProfs();
+}catch(e){
+showMsg(e.message)
+}
+
+}
+
+// ===== LOAD =====
+let profsData = [];
+
+async function loadProfs(){
+profsData = []; // clear cache to prevent duplicates
+let table=document.getElementById("profTable")
+table.innerHTML=""
+
+const snap=await getDocs(collection(db,"professeur"))
+
+snap.forEach(d=>{
+let p=d.data()
+if(p.role!=="prof") return
+p.id=d.id;
+profsData.push(p);
+
+const passId = `pass-${d.id}`;
+let photoHtml = p.photo ? `<img src="${p.photo}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">` : `<i class="fa-solid fa-user-tie" style="font-size:24px;color:#ccc;"></i>`;
+table.innerHTML+=`
+<tr>
+<td>${photoHtml}</td>
+<td>${p.cin || '-'}</td>
+<td style="text-align:left; font-weight:600; color:var(--secondary);">${p.nom} ${p.prenom}</td>
+<td><span style="background:#f1f5f9; padding:4px 10px; border-radius:6px; font-size:12px; font-weight:700;">${p.specialite}</span></td>
+<td style="font-size:13px;">${p.email}</td>
+<td style="font-weight:700; color:var(--primary);">${p["numero de telephone"] || '-'}</td>
+<td>
+    <div style="display:flex; align-items:center; justify-content:center; gap:8px;">
+        <span id="${passId}" style="font-family:monospace; background:#fafafa; padding:5px 10px; border-radius:8px; color:var(--primary); font-size:13px; font-weight:700; min-width:80px;">********</span>
+        <div style="display:flex; gap:4px;">
+            <button class="btn" style="padding:4px 8px; background:#f1f5f9; color:#64748b; font-size:11px; width:auto;" onclick="togglePass('${passId}', '${p.password}')" title="Afficher"><i class="fa-solid fa-eye"></i></button>
+            <button class="btn" style="padding:4px 8px; background:#f1f5f9; color:var(--primary); font-size:11px; width:auto;" onclick="copyToClipboard('${p.password}')" title="Copier"><i class="fa-solid fa-copy"></i></button>
+        </div>
+    </div>
+</td>
+<td style="font-size:12px; color:var(--secondary); font-weight:600;">${(p.classes || []).join(', ') || '-'}</td>
+<td>
+  <div style="display:flex; gap:5px; justify-content:center;">
+    <button style="background:#6366f1; padding:6px 10px; margin:0;" onclick="editProf('${d.id}', '${p.cin||''}', '${p.nom}', '${p.prenom}', '${p.grade||''}', '${p.specialite}', '${p.email}', '${p.tel||''}', '${p.photo||''}', ${JSON.stringify(p.classes || [])})" title="Modifier"><i class="fa-solid fa-pen"></i></button>
+    <button style="background:#10b981; padding:6px 10px; margin:0;" onclick="sendManualEmail('${p.nom} ${p.prenom}', '${p.email}', '${p.password}')" title="Envoyer mdp"><i class="fa-solid fa-envelope"></i></button>
+    <button class="btn-delete" style="padding:6px 10px; margin:0;" onclick="deleteProf('${d.id}')" title="Supprimer"><i class="fa-solid fa-trash"></i></button>
+  </div>
+</td>
+</tr>
+`
+})
+
+renderAbsencesList();
+}
+
+window.editProf = (id, cin, nom, prenom, grade, specialite, email, tel, photo, classes) => {
+document.getElementById("modalTitle").innerText="Modifier Professeur";
+document.getElementById("saveBtn").innerText="Enregistrer";
+document.getElementById("editId").value=id;
+document.getElementById("cin").value=cin;
+document.getElementById("nom").value=nom;
+document.getElementById("prenom").value=prenom;
+document.getElementById("grade").value=grade;
+document.getElementById("specialite").value=specialite;
+document.getElementById("email").value=email;
+document.getElementById("tel").value=tel;
+document.getElementById("photo").value=photo;
+
+// Reset and set checkboxes
+document.querySelectorAll("#classesCheckboxes input").forEach(i => {
+    i.checked = (classes || []).includes(i.value);
+});
+
+document.getElementById("modal").style.display="flex";
+showMsg("");
+}
+
+// ===== DELETE =====
+
+window.deleteProf=async(id)=>{
+if(confirm("Supprimer ?")){
+await deleteDoc(doc(db,"professeur",id))
+loadProfs()
+}
+}
+const matieresList = [
+// Informatique
+"Algorithmique",
+"Programmation",
+"Programmation Orientée Objet",
+"Structures de Données",
+"Base de données",
+"Développement Web",
+"Développement Mobile",
+"Génie Logiciel",
+"Intelligence Artificielle",
+"Machine Learning",
+"Réseaux",
+"Systèmes",
+"Systèmes d'Exploitation",
+"Sécurité Informatique",
+"Architecture des Ordinateurs",
+"Cloud Computing",
+// Gestion & Économie
+"Gestion",
+"Gestion de Projet",
+"Comptabilité",
+"Économie",
+"Marketing Digital",
+"Droit des Affaires",
+"Management",
+"Entrepreneuriat",
+// Sciences & Langues
+"Mathématiques",
+"Statistiques & Probabilités",
+"Physique",
+"Anglais",
+"Français",
+"Communication",
+"Techniques d'Expression",
+// TP
+"TP Programmation",
+"TP Base de données",
+"TP Réseaux",
+"TP Systèmes",
+"TP Développement Web",
+"TP Développement Mobile",
+"TP Intelligence Artificielle",
+"TP Génie Logiciel",
+"TP Sécurité Informatique"
+]
+// ===== EXPORT =====
+
+window.exportData=async ()=>{
+const snap=await getDocs(collection(db,"professeur"))
+let data=[]
+
+snap.forEach(d=>{
+if(d.data().role==="prof") data.push(d.data())
+})
+
+let blob=new Blob([JSON.stringify(data)],{type:"application/json"})
+let a=document.createElement("a")
+a.href=URL.createObjectURL(blob)
+a.download="profs.json"
+a.click()
+}
+
+// ===== IMPORT =====
+window.importExcel=()=>{
+let input=document.createElement("input")
+input.type="file"
+input.accept=".xlsx, .csv"
+
+input.onchange=(e)=>{
+let reader=new FileReader()
+
+reader.onload=async(evt)=>{
+let wb=XLSX.read(evt.target.result,{type:"array"})
+let data=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]])
+
+for(let p of data){
+    let password = p.Password || Math.floor(10000000 + Math.random() * 90000000).toString();
+    try {
+        const userCred = await createUserWithEmailAndPassword(auth, p.Email, password);
+
+        // Envoyer l'email
+        await sendEmailCredentials((p.Nom || "") + " " + (p.Prenom || ""), p.Email, password);
+
+        await setDoc(doc(db, "professeur", userCred.user.uid), {
+            cin: p.CIN || "",
+            nom: p.Nom,
+            prenom: p.Prenom,
+            "numero de telephone": p.Tel || "",
+            specialite: p.Specialite || p.Matiere || "",
+            email: p.Email,
+            role: "prof",
+            password: password,
+            photo: ""
+        });
+    } catch(err) { console.error("Error creating prof:", err); }
+}
+
+alert("Import terminé et emails envoyés avec succès")
+loadProfs()
+}
+
+reader.readAsArrayBuffer(e.target.files[0])
+}
+
+input.click()
+}
+
+// === GESTION ABSENCES PROFESSEURS ===
+let absencesData = [];
+
+onSnapshot(collection(db,"prof_presences"), snap => {
+    absencesData = [];
+    snap.forEach(d => {
+        let abs = d.data();
+        abs.id = d.id;
+        absencesData.push(abs);
+    });
+    renderAbsencesList();
+});
+
+function renderAbsencesList() {
+    let list = document.getElementById("absencesList");
+    if(!list) return;
+    list.innerHTML = "";
+    
+    profsData.forEach(p => {
+        let prenom = p.prenom || '';
+        let pAbsences = absencesData.filter(a => a.profId === p.id);
+        let photoHtml = p.photo ? `<img src="${p.photo}" style="width:25px;height:25px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:8px;">` : `<i class="fa-solid fa-user-tie" style="color:#94a3b8;margin-right:8px;"></i>`;
+        
+        if(pAbsences.length === 0) {
+            list.innerHTML += `
+            <tr>
+                <td style="font-weight:600; color:var(--secondary); text-align:left;">${photoHtml} ${p.nom} ${prenom}</td>
+                <td><span style="background:#f1f5f9; padding:4px 10px; border-radius:6px; font-size:12px; font-weight:700;">${p.specialite || '-'}</span></td>
+                <td style="text-align:left; font-weight:600; color:#94a3b8;">-</td>
+                <td style="font-weight:800; font-size:15px; color:#10b981;">0</td>
+                <td><span style="background:#d1fae5; color:#10b981; padding:4px 10px; border-radius:6px; font-size:11px; font-weight:800; text-transform:uppercase;">En Règle</span></td>
+            </tr>
+            `;
+        } else {
+            pAbsences.forEach(abs => {
+                let status = "En Règle";
+                let statusColor = "#10b981"; 
+                let statusBg = "#d1fae5";
+                
+                if(abs.absences >= 3) {
+                    status = "Avertissement";
+                    statusColor = "#ef4444";
+                    statusBg = "#fee2e2";
+                } else if(abs.absences >= 1) {
+                    status = "Attention";
+                    statusColor = "#f59e0b";
+                    statusBg = "#fef3c7";
+                }
+                
+                list.innerHTML += `
+                <tr>
+                    <td style="font-weight:600; color:var(--secondary); text-align:left;">${photoHtml} ${p.nom} ${prenom}</td>
+                    <td><span style="background:#f1f5f9; padding:4px 10px; border-radius:6px; font-size:12px; font-weight:700;">${p.specialite || '-'}</span></td>
+                    <td style="text-align:left; font-weight:600;">${abs.seance}</td>
+                    <td style="font-weight:800; font-size:15px; ${abs.absences > 0 ? 'color:var(--secondary);' : 'color:#10b981;'}">${abs.absences}</td>
+                    <td><span style="background:${statusBg}; color:${statusColor}; padding:4px 10px; border-radius:6px; font-size:11px; font-weight:800; text-transform:uppercase;">${status}</span></td>
+                </tr>
+                `;
+            });
+        }
+    });
+}
+
+window.filterProfAbsences = () => {
+    let term = document.getElementById("searchProfAbs").value.toLowerCase();
+    let rows = document.querySelectorAll("#absencesList tr");
+    rows.forEach(row => {
+        let name = row.cells[0].innerText.toLowerCase();
+        let seance = row.cells[2].innerText.toLowerCase();
+        if(name.includes(term) || seance.includes(term)) {
+            row.style.display = "";
+        } else {
+            row.style.display = "none";
+        }
+    });
+}
+
+
+// INIT
+loadProfs()
+
+</script>
+
+  <div id="google_translate_element" style="display:none;"></div>
+  <script type="text/javascript">
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({ pageLanguage: 'fr', autoDisplay: false }, 'google_translate_element');
+    }
+    window.addEventListener('load', function() {
+      var lang = localStorage.getItem('preferred_lang') || 'fr';
+      var checkTranslate = setInterval(function() {
+        if (lang && lang !== 'fr') {
+          var select = document.querySelector('.goog-te-combo');
+          if (select) {
+            select.value = lang;
+            select.dispatchEvent(new Event('change'));
+            clearInterval(checkTranslate);
+          }
+        } else {
+          clearInterval(checkTranslate);
+        }
+      }, 500);
+      setTimeout(function() { clearInterval(checkTranslate); }, 5000);
+    });
+  </script>
+  <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+</body>
+</html>

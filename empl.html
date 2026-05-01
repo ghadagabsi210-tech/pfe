@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard Employé - ESIP Gafsa</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="darkmode.css">
+    <script src="darkmode.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #0f172a;
+            --light: #f1f5f9;
+            --border: #e2e8f0;
+            --card-bg: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            display: flex;
+            background: var(--light);
+            color: #1e293b;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 260px;
+            background: var(--secondary);
+            color: white;
+            height: 100vh;
+            padding: 30px 20px;
+            position: fixed;
+        }
+
+        .sidebar h2 {
+            margin-bottom: 30px;
+            font-weight: 800;
+            font-size: 22px;
+            color: #38bdf8;
+            text-align: center;
+        }
+
+        .sidebar button {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            cursor: pointer;
+            transition: 0.3s;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .sidebar button:hover {
+            background: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .sidebar button i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* MAIN */
+        .main {
+            flex: 1;
+            padding: 40px;
+            margin-left: 260px;
+        }
+
+        /* TOP */
+        .top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .top h2 {
+            font-weight: 800;
+            color: var(--secondary);
+            font-size: 28px;
+        }
+
+        #search {
+            padding: 12px 20px;
+            border-radius: 25px;
+            border: 1px solid var(--border);
+            outline: none;
+            width: 300px;
+            background: white;
+            transition: 0.3s;
+        }
+
+        #search:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(37, 99, 235, 0.05);
+        }
+
+        /* CARDS */
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.02);
+            transition: 0.3s;
+            border: 1px solid var(--border);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.05);
+        }
+
+        .card h3 {
+            font-size: 15px;
+            color: #64748b;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 15px;
+        }
+
+        .card h2 {
+            font-size: 36px;
+            font-weight: 800;
+            color: var(--secondary);
+        }
+
+        /* STATUS BOX */
+        .statusBox {
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.02);
+            border-left: 5px solid var(--primary);
+        }
+
+        .statusBox h3 {
+            color: var(--secondary);
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .statusBox p {
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        /* TABLE */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.02);
+            border: 1px solid var(--border);
+        }
+
+        th {
+            background: #f8fafc;
+            color: #64748b;
+            padding: 18px;
+            text-transform: uppercase;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid var(--border);
+            text-align: left;
+        }
+
+        td {
+            padding: 15px 18px;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 14px;
+            color: #475569;
+        }
+
+        tr:hover {
+            background: #fafafa;
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            color: white;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .green {
+            background: #10b981;
+        }
+
+        .red {
+            background: #ef4444;
+        }
+
+        .orange {
+            background: #f59e0b;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="sidebar">
+        <h2>ESIP</h2>
+        <p
+            style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 700; margin-bottom: 15px; margin-left: 10px;">
+            Navigation</p>
+        <button onclick="showAll()"><i class="fa-solid fa-users"></i> Tous les membres</button>
+        <button onclick="showProf()"><i class="fa-solid fa-user-tie"></i> Corps Enseignant</button>
+        <button onclick="showEtd()"><i class="fa-solid fa-graduation-cap"></i> Étudiants</button>
+        <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.05); margin: 20px 0;">
+        <button onclick="location.href='parametre_prof.html'"><i class="fa-solid fa-gear"></i> Paramètres</button>
+        <button onclick="auth.signOut().then(()=>location.href='login.html')" style="color: #ef4444;"><i
+                class="fa-solid fa-right-from-bracket"></i> Déconnexion</button>
+    </div>
+
+    <div class="main">
+        <div class="top">
+            <div class="lang-switch" style="position:fixed; top:20px; right:200px; display:flex; gap:10px; z-index:9999; background:white; padding:10px; border-radius:20px; box-shadow:0 4px 15px rgba(0,0,0,0.1);">
+                <a href="#" id="lang-fr" onclick="changeLang('fr')" style="text-decoration:none; color:#64748b; font-weight:bold; font-size:12px;">FR</a>
+                <a href="#" id="lang-en" onclick="changeLang('en')" style="text-decoration:none; color:#64748b; font-weight:bold; font-size:12px;">EN</a>
+            </div>
+            <h2 id="userName" style="display:flex; align-items:center; gap:10px;"><i class="fa-solid fa-id-badge" style="color:var(--primary);"></i> Bienvenue</h2>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <div style="position:relative;">
+                    <i class="fa-solid fa-search" style="position:absolute; left:15px; top:50%; transform:translateY(-50%); color:#94a3b8;"></i>
+                    <input type="text" id="monitoringSearch" placeholder="Nom ou Matière..." style="padding:12px 15px 12px 40px; border-radius:15px; border:1px solid var(--border); width:280px; outline:none; font-family:Poppins; font-weight:500;">
+                </div>
+            </div>
+        </div>
+
+        <!-- PROFESSIONAL PROFILE HEADER -->
+        <div style="background: white; border-radius: 20px; padding: 30px; display: flex; align-items: center; justify-content: space-between; gap: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid var(--border); margin-bottom: 30px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <div style="width: 80px; height: 80px; background: var(--light); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 35px; color: var(--primary); border: 3px solid #e2e8f0; overflow: hidden;">
+                    <img id="profPhoto" src="https://via.placeholder.com/80" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                    <i id="profIcon" class="fa-solid fa-user-tie"></i>
+                </div>
+                <div>
+                    <h2 id="profFullName" style="color: var(--secondary); font-weight: 800; font-size: 24px; margin-bottom: 5px;">Chargement...</h2>
+                    <p id="profRole" style="color: #64748b; font-weight: 600; font-size: 14px; text-transform: uppercase;">Employé</p>
+                    <div style="display: flex; gap: 15px; margin-top: 10px; font-size: 13px; color: #94a3b8; font-weight: 500;">
+                        <span><i class="fa-solid fa-envelope"></i> <span id="profEmailTxt">--</span></span>
+                        <span><i class="fa-solid fa-phone"></i> <span id="profTelTxt">--</span></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 20px;">
+                <div style="background: #fff1f2; padding: 15px 25px; border-radius: 15px; text-align: center; border-left: 4px solid #e11d48; box-shadow: 0 5px 15px rgba(225,29,72,0.1);">
+                    <div style="font-size: 11px; font-weight: 800; color: #be123c; text-transform: uppercase; margin-bottom: 5px;">Total Absences</div>
+                    <div style="display:flex; align-items:center; justify-content:center; gap:8px;">
+                        <i class="fa-solid fa-user-xmark" style="color:#e11d48; font-size:18px;"></i>
+                        <span id="myTotalAbsences" style="font-size: 22px; font-weight: 800; color: #9f1239;">--</span>
+                    </div>
+                </div>
+                <div style="background: #f8fafc; padding: 15px 25px; border-radius: 15px; text-align: center; border-left: 4px solid var(--primary);">
+                    <div style="font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 5px;">Statut Actuel</div>
+                    <div id="myStatus" style="font-size: 16px; font-weight: 800; color: var(--secondary);">--</div>
+                </div>
+                <div style="background: #fffbeb; padding: 15px 25px; border-radius: 15px; text-align: center; border-left: 4px solid #f59e0b;">
+                    <div style="font-size: 11px; font-weight: 800; color: #b45309; text-transform: uppercase; margin-bottom: 5px;">Session En Cours</div>
+                    <div id="mySession" style="font-size: 16px; font-weight: 800; color: #92400e;">--</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="cards" style="display: block;">
+            <div class="card" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-left: 5px solid #16a34a; border-radius: 20px;">
+                <h3 style="display:flex; align-items:center; gap:8px; color:#166534; font-size: 14px;"><i class="fa-solid fa-broadcast-tower"></i> Moniteur Direct (Séances en cours)</h3>
+                <div id="liveMonitorList" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:15px; margin-top:15px;">
+                    <p style="font-size:13px; color:#166534; font-weight:600; opacity:0.8;">Détermination de l'activité en cours...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ATTENDANCE HISTORY -->
+        <div style="margin-top:40px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:15px; flex-wrap:wrap; gap:15px;">
+                <h3 style="color:var(--secondary); font-weight:800; display:flex; align-items:center; gap:10px; margin:0;">
+                    <i class="fa-solid fa-history" style="color:var(--primary);"></i> Historique de mes Présences
+                </h3>
+                
+                <div style="display:flex; gap:10px; align-items:center; background:white; padding:10px 15px; border-radius:15px; border:1px solid #e2e8f0; box-shadow: 0 4px 10px rgba(0,0,0,0.02);">
+                    <div style="display:flex; flex-direction:column; gap:2px;">
+                        <label style="font-size:10px; font-weight:800; color:#64748b; text-transform:uppercase;">Du</label>
+                        <input type="date" id="dateDebut" style="border:none; outline:none; font-family:Poppins; font-size:13px; color:var(--secondary); font-weight:600;">
+                    </div>
+                    <div style="width:1px; height:25px; background:#e2e8f0;"></div>
+                    <div style="display:flex; flex-direction:column; gap:2px;">
+                        <label style="font-size:10px; font-weight:800; color:#64748b; text-transform:uppercase;">Au</label>
+                        <input type="date" id="dateFin" style="border:none; outline:none; font-family:Poppins; font-size:13px; color:var(--secondary); font-weight:600;">
+                    </div>
+                    <button onclick="applyDateFilter()" style="background:var(--primary); color:white; border:none; width:35px; height:35px; border-radius:10px; cursor:pointer; transition:0.3s; display:flex; align-items:center; justify-content:center;">
+                        <i class="fa-solid fa-filter"></i>
+                    </button>
+                    <button onclick="resetDateFilter()" style="background:#f1f5f9; color:#64748b; border:none; padding:5px 10px; border-radius:8px; cursor:pointer; font-size:11px; font-weight:700;">Reset</button>
+                </div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Séance / Matière</th>
+                        <th>Heure Pointage</th>
+                        <th>État</th>
+                    </tr>
+                </thead>
+                <tbody id="myHistoryBody">
+                    <tr>
+                        <td colspan="4" style="text-align:center; color:#94a3b8; padding:40px;">Chargement de
+                            l'historique...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <hr style="border:none; border-top:1px solid #e2e8f0; margin:50px 0;">
+        
+        <style>
+            .grid-planning {
+                display: grid;
+                grid-template-columns: 100px repeat(6, 1fr);
+                gap: 0;
+                background: #fff;
+                border: 1px solid #e2e8f0;
+                border-radius: 12px;
+                overflow: hidden;
+                margin-top: 20px;
+            }
+
+            .cell { 
+                border: 0.5px solid #e2e8f0; 
+                padding: 12px; 
+                min-height: 100px; 
+                font-size: 11px; 
+                background: white;
+            }
+
+            .cell.header {
+                background: #0f172a;
+                color: white;
+                font-weight: 700;
+                text-align: center;
+                min-height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .course-card b { display: block; color: var(--secondary); margin-bottom: 5px; font-size: 11px; }
+            .course-card span { font-size: 10px; color: #64748b; display: flex; align-items: center; gap: 5px; margin-bottom: 2px; }
+
+            .pose-indicator {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                height: 100%;
+                color: #94a3b8;
+                font-size: 11px;
+                font-weight: 600;
+                opacity: 0.5;
+            }
+            .pose-indicator i { font-size: 18px; margin-bottom: 4px; }
+        </style>
+
+        <section class="section-card" style="margin-bottom:30px;" id="pdfContent">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid #2563eb; padding-bottom: 10px; margin-bottom: 20px;">
+                <h3 style="color: #0f172a; margin:0;"><i class="fa-solid fa-clock"></i> Mes Heures de Travail</h3>
+                <button onclick="downloadPDF()" style="padding:8px 20px; border-radius:10px; border:none; color:white; background:#2563eb; cursor:pointer; font-weight:700; display:flex; align-items:center; gap:8px; transition:0.3s; box-shadow:0 4px 15px rgba(37,99,235,0.2);">
+                    <i class="fa-solid fa-file-pdf"></i> PDF
+                </button>
+            </div>
+            <div class="grid-planning" id="profSchedule">
+                <!-- Dynamic Grid -->
+            </div>
+        </section>
+
+        <hr style="border:none; border-top:1px solid #e2e8f0; margin:50px 0;">
+        
+        <div style="background:white; padding:30px; border-radius:30px; box-shadow:0 10px 40px rgba(0,0,0,0.03); border:1px solid var(--border);">
+            <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:25px; flex-wrap:wrap; gap:20px;">
+                <h3 style="color:var(--secondary); font-weight:800; margin:0; display:flex; align-items:center; gap:12px;">
+                    <i class="fa-solid fa-users-viewfinder" style="color:var(--primary);"></i> Centre de Monitoring des Membres
+                </h3>
+                
+                <!-- FILTERS BAR -->
+                <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; background:#f8fafc; padding:15px; border-radius:20px; border:1px solid #e2e8f0;">
+                    <!-- Date Filter -->
+                    <div style="display:flex; gap:8px;">
+                        <div class="date-input-group">
+                            <label style="font-size:9px; font-weight:800; color:#64748b; text-transform:uppercase;">Période du</label>
+                            <input type="date" id="monStart" onchange="refreshMonitoring()" style="border:none; background:transparent; font-family:Poppins; font-weight:600; font-size:12px; display:block;">
+                        </div>
+                        <div class="date-input-group">
+                            <label style="font-size:9px; font-weight:800; color:#64748b; text-transform:uppercase;">Au</label>
+                            <input type="date" id="monEnd" onchange="refreshMonitoring()" style="border:none; background:transparent; font-family:Poppins; font-weight:600; font-size:12px; display:block;">
+                        </div>
+                    </div>
+
+                    <div style="width:1px; height:30px; background:#cbd5e1; margin:0 5px;"></div>
+
+                    <!-- Role & Context Filter -->
+                    <select id="monRole" onchange="updateContextFilter()" style="padding:10px; border-radius:10px; border:1px solid #e2e8f0; font-family:Poppins; font-weight:600;">
+                        <option value="all">Tous les rôles</option>
+                        <option value="prof">Professeurs</option>
+                        <option value="etudiant">Étudiants</option>
+                    </select>
+
+                    <select id="monContext" onchange="refreshMonitoring()" style="padding:10px; border-radius:10px; border:1px solid #e2e8f0; font-family:Poppins; font-weight:600; min-width:150px;">
+                        <option value="">Tous les Groupes/Matières</option>
+                    </select>
+
+                    <button onclick="resetFilters()" style="padding:10px 15px; border-radius:10px; border:none; background:#0f172a; color:white; font-weight:700; cursor:pointer;"><i class="fa-solid fa-rotate-left"></i></button>
+                </div>
+            </div>
+
+            <table style="border:none; box-shadow:none;">
+                <thead>
+                    <tr>
+                        <th>Membre</th>
+                        <th>Groupe / Matière</th>
+                        <th style="text-align:center;">Absences (Période)</th>
+                        <th style="text-align:center;">Statut Actuel</th>
+                    </tr>
+                </thead>
+                <tbody id="monitoringBody">
+                    <tr><td colspan="4" style="text-align:center; padding:50px; color:#94a3b8;">Chargement des données de monitoring...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        window.downloadPDF = function() {
+            const element = document.createElement('div');
+            element.style.padding = '40px';
+            element.style.fontFamily = 'Poppins, sans-serif';
+            
+            const header = `
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #0f172a; padding-bottom:20px; margin-bottom:30px;">
+                    <div>
+                        <h1 style="margin:0; font-size:24px; color:#0f172a; font-weight:800;">ESIP GAFSA</h1>
+                        <p style="margin:0; font-size:12px; color:#64748b;">École Supérieure d'Ingénieurs et de Management de Gafsa</p>
+                    </div>
+                    <div style="text-align:right;">
+                        <h2 style="margin:0; font-size:18px; color:#2563eb; font-weight:700;">EMPLOI DU TEMPS</h2>
+                        <p style="margin:0; font-size:12px; color:#0f172a; font-weight:600;">Employé: ${currentUser.nom} ${currentUser.prenom || ''}</p>
+                    </div>
+                </div>
+            `;
+            
+            const gridClone = document.getElementById('profSchedule').cloneNode(true);
+            gridClone.style.boxShadow = 'none';
+            gridClone.style.border = '1px solid #e2e8f0';
+            gridClone.style.display = 'grid';
+            
+            element.innerHTML = header + gridClone.outerHTML + `
+                <div style="margin-top:40px; text-align:right; font-size:11px; color:#94a3b8;">
+                    Généré le ${new Date().toLocaleDateString()} - ESIP Portal PRO
+                </div>
+            `;
+
+            const opt = {
+                margin: 10,
+                filename: `Emploi_${currentUser.nom}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+            };
+
+            html2pdf().set(opt).from(element).save();
+        }
+
+        async function loadProfSchedule(userName) {
+            if (!userName) return;
+            const { query, where, getFirestore, collection, onSnapshot } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+            const days = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+            
+            const q = query(collection(db, "schedules"), where("prof", "==", userName));
+            const q2 = query(collection(db, "schedules"), where("employe", "==", userName));
+
+            onSnapshot(q, snap1 => {
+                onSnapshot(q2, snap2 => {
+                    let allDocs = [...snap1.docs, ...snap2.docs].filter(d => d.data().isPublished !== false);
+                    renderScheduleGrid(allDocs, days);
+                });
+            });
+        }
+
+        function renderScheduleGrid(docs, days) {
+            let grid = document.getElementById("profSchedule");
+            if(!grid) return;
+            grid.innerHTML = `<div class="cell header">Heure</div>${days.map(d => `<div class="cell header">${d}</div>`).join("")}`;
+
+            let hours = [];
+            docs.forEach(doc => {
+                let s = doc.data();
+                let h = s.heureDebut + "-" + s.heureFin;
+                if (!hours.includes(h)) hours.push(h);
+            });
+            hours.sort();
+
+            hours.forEach(h => {
+                grid.innerHTML += `<div class="cell header">${h}</div>`;
+                days.forEach(day => {
+                    let content = "";
+                    docs.forEach(doc => {
+                        let s = doc.data();
+                        if ((s.heureDebut + "-" + s.heureFin) === h && s.jour === day) {
+                            content += `
+                                <div class="course-card">
+                                    <b>${s.matiere}</b>
+                                    <span><i class="fa-solid fa-users"></i> ${s.classe || 'Service'}</span>
+                                    <span><i class="fa-solid fa-location-dot"></i> ${s.salle}</span>
+                                </div>
+                            `;
+                        }
+                    });
+                    if(content === "") {
+                        content = `<div class="pose-indicator"><i class="fa-solid fa-mug-hot"></i> Pause</div>`;
+                    }
+                    grid.innerHTML += `<div class="cell">${content}</div>`;
+                });
+            });
+        }
+    </script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, query, where, orderBy, Timestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD56AbWLar8R7qe4x__3a8dfZop6A1jew0",
+            authDomain: "pfe2026-2cd50.firebaseapp.com",
+            projectId: "pfe2026-2cd50"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        window.auth = auth;
+        let users = [];
+        let currentUser = null;
+
+        function getSession() {
+            let h = new Date().getHours();
+            document.getElementById("currentSessTime").innerText = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            if (h >= 8 && h < 10) return "08:00 - 10:00";
+            if (h >= 10 && h < 12) return "10:00 - 12:00";
+            if (h >= 14 && h < 16) return "14:00 - 16:00";
+            return "Hors séance";
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) location.href = "login.html";
+
+            // 1. Fetch Current User from 'employes'
+            const qUser = query(collection(db, "employes"), where("email", "==", user.email));
+            onSnapshot(qUser, (snap) => {
+                if(!snap.empty) {
+                    currentUser = snap.docs[0].data();
+                    currentUser.id = snap.docs[0].id;
+                    updateDashboardUI();
+                }
+            });
+
+            // 2. Fetch all members for monitoring
+            const collectionsToWatch = ["professeur", "etd", "employes"];
+            window.allMembers = {};
+            
+            collectionsToWatch.forEach(coll => {
+                onSnapshot(collection(db, coll), (snap) => {
+                    window.allMembers[coll] = snap.docs.map(d => ({...d.data(), id: d.id, collection: coll}));
+                    users = Object.values(window.allMembers).flat();
+                    if(currentUser) {
+                        refreshMonitoring();
+                        initMonitoring();
+                    }
+                });
+            });
+        });
+
+        function updateDashboardUI() {
+            if (!currentUser) return;
+            document.getElementById("userName").innerHTML = `<i class="fa-solid fa-id-badge" style="color:var(--primary);"></i> Espace Employé`;
+            
+            // Profile Update
+            const fullName = `${currentUser.nom} ${currentUser.prenom || ''}`;
+            document.getElementById("profFullName").innerText = fullName;
+            document.getElementById("profRole").innerText = currentUser.poste || "Employé";
+            document.getElementById("profEmailTxt").innerText = currentUser.email || "--";
+            document.getElementById("profTelTxt").innerText = currentUser.tel || "--";
+            
+            if(currentUser.photo) {
+                document.getElementById("profPhoto").src = currentUser.photo;
+                document.getElementById("profPhoto").style.display = "block";
+                document.getElementById("profIcon").style.display = "none";
+            }
+            
+            document.getElementById("myStatus").innerHTML = currentUser.presence ? "<span style='color:#10b981;'><i class='fa-solid fa-circle-check'></i> Hader (Présent)</span>" : "<span style='color:#ef4444;'><i class='fa-solid fa-circle-xmark'></i> Absent</span>";
+            document.getElementById("mySession").innerText = getSession();
+
+            loadMyHistory(currentUser.id);
+            loadProfSchedule(fullName); 
+        }
+
+        // Global Presences Listener for Monitoring
+        onSnapshot(collection(db, "presences"), (snap) => {
+            window.globalPresences = snap.docs.map(d => d.data());
+            refreshMonitoring();
+        });
+
+        document.getElementById("monitoringSearch").oninput = () => refreshMonitoring();
+
+        async function initMonitoring() {
+            // Populate Context Filters based on current users
+            const contexts = {
+                classes: [...new Set(users.filter(u => u.role === "etudiant").map(u => u.classe).filter(c => c))],
+                matieres: [...new Set(users.filter(u => u.role === "prof").map(u => u.specialite).filter(m => m))]
+            };
+            window.monitorContexts = contexts;
+            updateContextFilter();
+        }
+
+        window.updateContextFilter = () => {
+            const role = document.getElementById("monRole").value;
+            const ctxSelect = document.getElementById("monContext");
+            ctxSelect.innerHTML = '<option value="">Tous les Groupes/Matières</option>';
+            
+            let currentCtx = [];
+            if(role === "etudiant") currentCtx = window.monitorContexts.classes;
+            else if(role === "prof") currentCtx = window.monitorContexts.matieres;
+            else currentCtx = [...window.monitorContexts.classes, ...window.monitorContexts.matieres];
+
+            currentCtx.sort().forEach(c => {
+                ctxSelect.innerHTML += `<option value="${c}">${c}</option>`;
+            });
+            refreshMonitoring();
+        };
+
+        window.refreshMonitoring = () => {
+            const search = document.getElementById("monitoringSearch").value.toLowerCase();
+            const start = document.getElementById("monStart").value;
+            const end = document.getElementById("monEnd").value;
+            const role = document.getElementById("monRole").value;
+            const context = document.getElementById("monContext").value;
+
+            const startDate = start ? new Date(start).setHours(0,0,0,0) : null;
+            const endDate = end ? new Date(end).setHours(23,59,59,999) : null;
+
+            const body = document.getElementById("monitoringBody");
+            let filteredUsers = users.filter(u => u.role !== "admin");
+
+            // Filter by Search (Nom or Matière/Classe)
+            if(search) {
+                filteredUsers = filteredUsers.filter(u => 
+                    (u.nom + " " + u.prenom).toLowerCase().includes(search) ||
+                    (u.specialite || u.classe || "").toLowerCase().includes(search)
+                );
+            }
+
+            // Filter by Role
+            if(role !== "all") filteredUsers = filteredUsers.filter(u => u.role === role);
+
+            // Filter by Context
+            if(context) filteredUsers = filteredUsers.filter(u => u.classe === context || u.specialite === context);
+
+            body.innerHTML = filteredUsers.map(u => {
+                const userAbsences = (window.globalPresences || []).filter(p => {
+                    if(p.userId !== u.id && p.studentId !== u.id) return false;
+                    if(p.present === true) return false;
+                    
+                    const pDate = p.date instanceof Timestamp ? p.date.toDate() : new Date(p.date);
+                    if(startDate && pDate < startDate) return false;
+                    if(endDate && pDate > endDate) return false;
+                    return true;
+                });
+
+                const absCount = userAbsences.length;
+                const badge = u.presence ? "green" : "red";
+                const roleIcon = u.role === "prof" ? "fa-user-tie" : "fa-graduation-cap";
+
+                return `
+                    <tr>
+                        <td>
+                            <div style="display:flex; align-items:center; gap:12px;">
+                                <div style="width:35px; height:35px; background:#f1f5f9; border-radius:50%; display:flex; align-items:center; justify-content:center; color:var(--primary);">
+                                    <i class="fa-solid ${roleIcon}"></i>
+                                </div>
+                                <div>
+                                    <div style="font-weight:700; color:var(--secondary);">${u.nom} ${u.prenom}</div>
+                                    <div style="font-size:11px; color:#94a3b8; text-transform:uppercase; font-weight:800;">${u.role}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span style="background:#eff6ff; color:var(--primary); padding:4px 10px; border-radius:8px; font-size:12px; font-weight:700;">${u.specialite || u.classe || '-'}</span>
+                        </td>
+                        <td style="text-align:center; font-weight:800; color:${absCount >= 5 ? '#ef4444' : 'var(--secondary)'};">
+                            ${absCount}
+                        </td>
+                        <td style="text-align:center;">
+                            <span class="badge ${badge}">${u.presence ? 'Hader' : 'Absent'}</span>
+                        </td>
+                    </tr>
+                `;
+            }).join('') || '<tr><td colspan="4" style="text-align:center; padding:30px;">Aucun membre trouvé avec ces critères</td></tr>';
+        };
+
+        window.resetFilters = () => {
+            document.getElementById("monitoringSearch").value = "";
+            document.getElementById("monStart").value = "";
+            document.getElementById("monEnd").value = "";
+            document.getElementById("monRole").value = "all";
+            updateContextFilter();
+        };
+
+        window.showAll = () => { document.getElementById("monRole").value = "all"; updateContextFilter(); };
+        window.showProf = () => { document.getElementById("monRole").value = "prof"; updateContextFilter(); };
+        window.showEtd = () => { document.getElementById("monRole").value = "etudiant"; updateContextFilter(); };
+
+        function render(data, type) {
+            let head = "";
+            let body = "";
+
+            if (type === "prof") {
+                head = "<tr><th>Nom Enseignant</th><th>Spécialité</th><th>Statut</th></tr>";
+                data.forEach(u => {
+                    body += `<tr><td>${u.nom} ${u.prenom}</td><td>${u.specialite || '-'}</td><td><span class="badge ${u.presence ? 'green' : 'red'}">${u.presence ? 'Présent' : 'Absent'}</span></td></tr>`;
+                });
+            } else if (type === "etd") {
+                head = "<tr><th>Étudiant</th><th>Classe</th><th>Dernière présence</th></tr>";
+                data.forEach(u => {
+                    body += `<tr><td>${u.nom} ${u.prenom}</td><td>${u.classe}</td><td>${u.presence ? 'Aujourd\'hui' : 'Jamais'}</td></tr>`;
+                });
+            } else {
+                head = "<tr><th>Nom & Prénom</th><th>Rôle</th><th>ID</th></tr>";
+                data.forEach(u => {
+                    body += `<tr><td>${u.nom} ${u.prenom}</td><td style="text-transform:capitalize">${u.role}</td><td>#${u.id.slice(0, 6)}</td></tr>`;
+                });
+            }
+
+            document.getElementById("thead").innerHTML = head;
+            document.getElementById("tbody").innerHTML = body;
+        }
+
+        window.allAttendanceData = [];
+        function loadMyHistory(uid) {
+            const histBody = document.getElementById("myHistoryBody");
+            const q = query(collection(db, "presences"), where("userId", "==", uid), orderBy("date", "desc"));
+            
+            onSnapshot(q, (snap) => {
+                window.allAttendanceData = [];
+                snap.forEach(d => window.allAttendanceData.push(d.data()));
+                renderHistoryTable();
+            });
+        }
+
+        function renderHistoryTable(dataToRender = null) {
+            const histBody = document.getElementById("myHistoryBody");
+            const absCounter = document.getElementById("myTotalAbsences");
+            const data = dataToRender || window.allAttendanceData;
+
+            // Compute total absences
+            const totalAbs = window.allAttendanceData.filter(s => s.present === false).length;
+            if(absCounter) absCounter.innerText = totalAbs;
+
+            if (data.length === 0) {
+                histBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#94a3b8; padding:40px;">Aucun historique trouvé</td></tr>';
+                return;
+            }
+
+            histBody.innerHTML = data.map(s => {
+                const dateObj = s.date instanceof Timestamp ? s.date.toDate() : new Date(s.date);
+                const dateStr = dateObj.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' });
+                const timeStr = dateObj.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                const status = s.present ? 'present' : 'absent';
+                
+                return `
+                    <tr>
+                        <td style="font-weight:600; color:#0f172a;">${dateStr}</td>
+                        <td style="font-weight:500;">${s.seance || "-"} <br><small style="color:#2563eb; font-weight:700;">${s.matiere || "Service / Travail"}</small></td>
+                        <td style="font-weight:800; color:var(--secondary); font-family:monospace; font-size:15px;">${timeStr}</td>
+                        <td><span class="badge ${s.present ? 'green' : 'red'}" style="font-size:11px; padding:6px 12px; font-weight:800; text-transform:uppercase; letter-spacing:1px;">${s.present ? 'Hader' : 'Absent'}</span></td>
+                    </tr>
+                `;
+            }).join('');
+        }        window.applyDateFilter = () => {
+            const start = document.getElementById("dateDebut").value;
+            const end = document.getElementById("dateFin").value;
+
+            if (!start || !end) {
+                alert("Sélectionnez une plage de dates complète.");
+                return;
+            }
+
+            const startDate = new Date(start);
+            startDate.setHours(0, 0, 0, 0);
+            const endDate = new Date(end);
+            endDate.setHours(23, 59, 59, 999);
+
+            const filtered = window.allAttendanceData.filter(s => {
+                const dateObj = s.date instanceof Timestamp ? s.date.toDate() : new Date(s.date);
+                return dateObj >= startDate && dateObj <= endDate;
+            });
+
+            renderHistoryTable(filtered);
+        };
+
+        // --- LIVE MONITOR LOGIC ---
+        async function runLiveMonitor() {
+            const days = ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
+            const now = new Date();
+            const dayName = days[now.getDay()];
+            const currentTime = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+            
+            const list = document.getElementById("liveMonitorList");
+            if(!list) return;
+            
+            if(dayName === "Dimanche") {
+                list.innerHTML = '<p style="font-size:12px; color:#92400e;">C\'est dimanche. Pas de cours prévus.</p>';
+                return;
+            }
+
+            const q = query(collection(db, "schedules"), where("jour", "==", dayName));
+            onSnapshot(q, (snap) => {
+                let activeEntries = [];
+                snap.forEach(doc => {
+                    const s = doc.data();
+                    if(currentTime >= s.heureDebut && currentTime <= s.heureFin) {
+                        activeEntries.push(s);
+                    }
+                });
+
+                if(activeEntries.length === 0) {
+                    list.innerHTML = '<p style="font-size:12px; color:#92400e; font-weight:700;"><i class="fa-solid fa-mug-hot"></i> En pause / Pas de cours en ce moment.</p>';
+                } else {
+                    list.innerHTML = activeEntries.map(s => `
+                        <div style="background:white; padding:15px; border-radius:15px; border:1px solid #fde68a; box-shadow:0 5px 15px rgba(217,119,6,0.05);">
+                            <div style="font-size:11px; font-weight:800; color:#d97706; text-transform:uppercase; margin-bottom:5px;">${s.classe}</div>
+                            <div style="font-size:13px; font-weight:700; color:#0f172a; margin-bottom:5px;">${s.matiere}</div>
+                            <div style="font-size:11px; color:#64748b;"><i class="fa-solid fa-user-tie"></i> ${s.prof}</div>
+                            <div style="font-size:11px; color:#64748b;"><i class="fa-solid fa-location-dot"></i> ${s.salle}</div>
+                        </div>
+                    `).join("");
+                }
+            });
+        }
+        
+        runLiveMonitor();
+        setInterval(runLiveMonitor, 60000); // Refresh every minute
+
+        window.resetDateFilter = () => {
+            document.getElementById("dateDebut").value = "";
+            document.getElementById("dateFin").value = "";
+            renderHistoryTable();
+        };
+    </script>
+    <script src="chatbot.js"></script>
+</body>
+</html>

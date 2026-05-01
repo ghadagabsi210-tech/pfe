@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>ESIP Gafsa – Connexion</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
+<style>
+:root {
+    --primary: #2563eb;
+    --secondary: #0f172a;
+    --light: #f8fafc;
+    --border: #e2e8f0;
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Poppins',sans-serif;
+}
+body{
+    min-height:100vh;
+    background: url("esip.png") no-repeat center center;
+    background-size: cover;
+    animation: bgMove 25s linear infinite alternate;
+}
+@keyframes bgMove{
+    0%{background-position:center;}
+    100%{background-position:top;}
+}
+.overlay{
+    min-height:100vh;
+    background: rgba(15,23,42,0.6);
+    backdrop-filter: blur(5px);
+}
+nav{
+    width:100%;
+    padding:20px 60px;
+    background:rgba(15,23,42,0.95);
+    color:white;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+nav h2{
+    font-size:22px;
+    font-weight:800;
+}
+nav span{
+    font-size:14px;
+    opacity:0.9;
+}
+.container{
+    max-width:1000px;
+    margin:50px auto;
+    background:white;
+    padding:60px;
+    border-radius:35px;
+    box-shadow:0 30px 80px rgba(0,0,0,0.4);
+    animation: fadeUp 0.8s ease;
+}
+@keyframes fadeUp{
+    from{opacity:0;transform:translateY(35px);}
+    to{opacity:1;transform:translateY(0);}
+}
+h1{
+    font-size:38px;
+    color:var(--secondary);
+    margin-bottom:10px;
+    font-weight: 800;
+}
+.subtitle{
+    font-size:17px;
+    color:#64748b;
+    margin-bottom:45px;
+}
+form{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:25px;
+}
+input, select, textarea{
+    padding:16px 18px;
+    border-radius:14px;
+    border:1px solid var(--border);
+    font-size:15px;
+    width:100%;
+    background: #fcfcfc;
+    transition: 0.3s;
+}
+input:focus, select:focus, textarea:focus {
+    border-color: var(--primary);
+    background: white;
+    outline: none;
+}
+textarea{
+    resize:none;
+    height:120px;
+}
+.full{
+    grid-column:1 / 3;
+}
+.actions{
+    display:flex;
+    gap:25px;
+    margin-top:30px;
+}
+.actions button{
+    padding:16px 35px;
+    border:none;
+    border-radius:30px;
+    font-size:15px;
+    font-weight:700;
+    cursor:pointer;
+    transition:0.35s;
+}
+.btn-login{
+    background:#e2e8f0;
+    color:var(--secondary);
+}
+.btn-request{
+    background:var(--primary);
+    color:white;
+}
+.actions button:hover{
+    transform:translateY(-4px);
+    box-shadow:0 15px 35px rgba(37,99,235,0.2);
+}
+.note{
+    margin-top:30px;
+    font-size:14px;
+    color:#64748b;
+}
+</style>
+</head>
+
+<body>
+
+<div class="overlay">
+    <nav>
+        <h2>ESIP Gafsa</h2>
+        <span>Système Intelligent de Gestion de Présence</span>
+    </nav>
+
+    <div class="container">
+        <h1>Demande d’Accès</h1>
+        <p class="subtitle">
+            Veuillez remplir le formulaire ci-dessous pour rejoindre le système SmartPresence.
+        </p>
+
+        <form id="requestForm" onsubmit="envoyerDemande(event)">
+            <input type="text" id="fullName" placeholder="Nom complet" required>
+            <input type="email" id="email" placeholder="Adresse e-mail institutionnelle" required>
+
+            <div style="position:relative; display:none;">
+                <input type="password" id="passwordField" value="AUTO_GENERATED">
+            </div>
+            <div class="full" style="background:#f1f5f9; padding:12px; border-radius:10px; font-size:13px; color:#475569; margin-bottom:10px;">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Un mot de passe sécurisé sera généré et envoyé à votre adresse e-mail.
+            </div>
+
+            <input type="text" id="cin" placeholder="Numéro CIN" required>
+            <input type="tel" id="phone" placeholder="Téléphone">
+
+            <select id="role" required>
+                <option value="">Choisissez votre rôle</option>
+                <option>Administrateur</option>
+                <option>Employé</option>
+            </select>
+
+            <input type="text" id="department" placeholder="Département / Classe">
+            <textarea id="info" class="full" placeholder="Informations complémentaires (optionnel)"></textarea>
+
+            <div class="actions full">
+                <button type="button" class="btn-login" onclick="dejaCompte()">
+                    J’ai déjà un compte
+                </button>
+
+                <button type="submit" class="btn-request">
+                    Envoyer la demande
+                </button>
+            </div>
+        </form>
+
+        <p class="note">
+            <i class="fa-solid fa-circle-info" style="font-size:14px;margin-right:4px"></i> Votre demande sera étudiée par l'administration de l'ESIP Gafsa.
+        </p>
+    </div>
+</div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyD56AbWLar8R7qe4x__3a8dfZop6A1jew0",
+  authDomain: "pfe2026-2cd50.firebaseapp.com",
+  projectId: "pfe2026-2cd50",
+  storageBucket: "pfe2026-2cd50.firebasestorage.app",
+  messagingSenderId: "263356463306",
+  appId: "1:263356463306:web:bf3b02eb9ec97dce069c33"
+};
+
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// --- CONFIGURATION EMAILJS ---
+const EMAILJS_PUBLIC_KEY = "89VgfdkHUrxYc1zoK"; 
+const EMAILJS_SERVICE_ID = "service_ortv39k"; 
+const EMAILJS_TEMPLATE_ID = "template_3lsnt5d"; 
+
+emailjs.init(EMAILJS_PUBLIC_KEY);
+
+function generateRandomPassword() {
+  const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$";
+  let pass = "";
+  for (let i = 0; i < 8; i++) {
+    pass += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return pass;
+}
+
+async function sendEmailCredentials(name, email, password) {
+  try {
+    const templateParams = {
+      to_name: name,
+      to_email: email,
+      password: password,
+      login_url: window.location.origin + "/login.html"
+    };
+    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
+    console.log("Email envoyé avec succès !");
+  } catch (err) {
+    console.error("Erreur envoi email:", err);
+    throw new Error("Impossible d'envoyer l'email de bienvenue.");
+  }
+}
+
+function dejaCompte(){
+  window.location.href = "login.html";
+}
+
+function envoyerDemande(e){
+  e.preventDefault();
+
+  const fullName = document.getElementById("fullName").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const cin = document.getElementById("cin").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+  const roleText = document.getElementById("role").value;
+  const department = document.getElementById("department").value.trim();
+  const info = document.getElementById("info").value.trim();
+
+  if(!fullName || !email || !cin || !phone){
+    alert("Remplissez tous les champs obligatoires.");
+    return;
+  }
+
+  const btn = e.submitter;
+  btn.disabled = true;
+  btn.innerText = "Traitement...";
+
+  const password = generateRandomPassword();
+
+  let role = (roleText === "Administrateur") ? "admin" : "employe";
+  let targetCollection = (role === "admin") ? "users" : "employes";
+
+  auth.createUserWithEmailAndPassword(email, password)
+  .then(async (userCredential) => {
+    const uid = userCredential.user.uid;
+    
+    // Envoyer l'email d'abord (Si ça échoue, on l'attrape)
+    await sendEmailCredentials(fullName, email, password);
+
+    return db.collection(targetCollection).doc(uid).set({
+      nom: fullName,
+      prenom: "",
+      email: email,
+      cin: cin,
+      tel: phone,
+      role: role,
+      classe: department,
+      info: info,
+      password: password,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  })
+  .then(() => {
+    alert("Compte créé avec succès ! Votre mot de passe a été envoyé à : " + email);
+    return auth.signOut();
+  })
+  .then(() => {
+    window.location.href = "login.html";
+  })
+  .catch((error) => {
+    console.error(error);
+    alert("Erreur : " + error.message);
+    btn.disabled = false;
+    btn.innerText = "Envoyer la demande";
+  });
+}
+</script>
+</body>
+</html>

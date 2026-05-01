@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>ESIP - Nettoyage Étudiants Test</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; background: #0f172a; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+        .card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); text-align: center; max-width: 550px; width: 100%; }
+        #progress { margin-top: 20px; font-weight: 700; color: #dc2626; font-size: 28px; }
+        #log { margin-top: 20px; text-align: left; font-size: 11px; height: 220px; overflow-y: auto; background: #fff1f1; padding: 15px; border-radius: 12px; border: 1px solid #fecaca; font-family: monospace; }
+        .btn { padding: 16px 40px; border: none; border-radius: 14px; font-weight: 700; font-size: 16px; cursor: pointer; width: 100%; transition: 0.3s; }
+        #btn-go { background: #dc2626; color: white; margin-bottom: 10px; }
+        #btn-go:hover { background: #b91c1c; transform: translateY(-2px); }
+        #btn-go:disabled { background: #cbd5e1; cursor: not-allowed; transform: none; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h1>🗑️ Nettoyage des Étudiants Test</h1>
+    <p style="color:#64748b; margin-bottom:25px;">Supprime tous les étudiants avec email <b>@gmail.com</b> et les anciens <b>student_auto_*</b> de la collection <code>etd</code>.</p>
+
+    <button class="btn" id="btn-go" onclick="startClean()">🚀 Lancer le nettoyage</button>
+    <div id="progress">En attente...</div>
+    <div id="log">Cliquez pour commencer.</div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyD56AbWLar8R7qe4x__3a8dfZop6A1jew0",
+        authDomain: "pfe2026-2cd50.firebaseapp.com",
+        projectId: "pfe2026-2cd50",
+    };
+
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const logEl = document.getElementById('log');
+    const b = (msg) => {
+        const d = document.createElement('div');
+        d.innerText = msg;
+        logEl.appendChild(d);
+        logEl.scrollTop = logEl.scrollHeight;
+    };
+
+    async function startClean() {
+        document.getElementById('btn-go').disabled = true;
+        logEl.innerHTML = '';
+        document.getElementById('progress').innerText = 'Chargement...';
+        b("📥 Récupération de la collection etd...");
+
+        const snap = await db.collection("etd").get();
+        b(`Trouvé ${snap.size} document(s) total.`);
+
+        let toDelete = [];
+        snap.forEach(d => {
+            const data = d.data();
+            const email = data.email || '';
+            // Delete: student_auto_* IDs  OR  @gmail.com emails (test accounts)
+            if (d.id.startsWith("student_auto_") || email.endsWith("@gmail.com")) {
+                toDelete.push({ id: d.id, email: email });
+            }
+        });
+
+        b(`🎯 ${toDelete.length} étudiants test à supprimer.`);
+
+        if (toDelete.length === 0) {
+            document.getElementById('progress').innerText = "Rien à supprimer!";
+            document.body.style.background = "#dcfce7";
+            return;
+        }
+
+        let i = 0;
+        for (const s of toDelete) {
+            await db.collection("etd").doc(s.id).delete();
+            i++;
+            const p = Math.round((i / toDelete.length) * 100);
+            document.getElementById('progress').innerText = p + "%";
+            b(`🗑️ Supprimé: ${s.email || s.id}`);
+        }
+
+        document.getElementById('progress').innerText = "✅ TERMINÉ !";
+        document.getElementById('progress').style.color = "#059669";
+        document.body.style.background = "#0d2e1a";
+        b(`\n✅ ${i} étudiants test supprimés avec succès.`);
+        b("👉 Vous pouvez fermer cette page.");
+    }
+</script>
+
+</body>
+</html>
