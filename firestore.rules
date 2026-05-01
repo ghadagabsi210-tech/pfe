@@ -1,0 +1,100 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function hasRole(expectedRole) {
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == expectedRole;
+    }
+
+    function isStudent() {
+      return hasRole('student');
+    }
+
+    function isProfessor() {
+      return hasRole('professor');
+    }
+
+    function isAdmin() {
+      return hasRole('admin');
+    }
+
+    match /users/{uid} {
+      allow read: if isSignedIn() && (request.auth.uid == uid || isAdmin());
+      allow create: if isSignedIn() && request.auth.uid == uid;
+      allow update: if isSignedIn() && (request.auth.uid == uid || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    match /etudiants/{uid} {
+      allow read: if isSignedIn() && (request.auth.uid == uid || isProfessor() || isAdmin());
+      allow create, update: if isSignedIn() && (request.auth.uid == uid || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    match /professeurs/{uid} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn() && (request.auth.uid == uid || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    match /presence_requests/{requestId} {
+      allow create: if isStudent() &&
+        request.resource.data.studentId == request.auth.uid &&
+        request.resource.data.status == 'pending';
+
+      allow read: if isSignedIn() && (
+        resource.data.studentId == request.auth.uid ||
+        resource.data.profId == request.auth.uid ||
+        isAdmin()
+      );
+
+      allow update: if isSignedIn() && (
+        (isProfessor() && resource.data.profId == request.auth.uid &&
+          request.resource.data.status in ['accepted', 'refused']) ||
+        (isAdmin())
+      );
+
+      allow delete: if isAdmin();
+    }
+
+    match /notifications/{id} {
+      allow create: if isSignedIn();
+      allow read: if isSignedIn() && (resource.data.toUserId == request.auth.uid || isAdmin());
+      allow update: if isSignedIn() && (resource.data.toUserId == request.auth.uid || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    match /absences/{id} {
+      allow create: if isProfessor() || isAdmin();
+      allow read: if isSignedIn() && (
+        resource.data.etuId == request.auth.uid || isProfessor() || isAdmin()
+      );
+      allow update, delete: if isProfessor() || isAdmin();
+    }
+
+    match /presences/{id} {
+      allow create: if isProfessor() || isAdmin();
+      allow read: if isSignedIn() && (
+        resource.data.etuId == request.auth.uid || isProfessor() || isAdmin()
+      );
+      allow update, delete: if isProfessor() || isAdmin();
+    }
+
+    match /attendances/{id} {
+      allow create: if isProfessor() || isAdmin();
+      allow read: if isSignedIn() && (
+        resource.data.etuId == request.auth.uid || isProfessor() || isAdmin()
+      );
+      allow update, delete: if isProfessor() || isAdmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
